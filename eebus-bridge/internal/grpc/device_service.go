@@ -392,12 +392,19 @@ func (s *DeviceService) ListDiscoveredDevices(_ context.Context, _ *pb.Empty) (*
 	})
 	devices := make([]*pb.DiscoveredDevice, 0, len(svcs))
 	for _, svc := range svcs {
+		categories := make([]uint32, 0, len(svc.Categories))
+		for _, category := range svc.Categories {
+			categories = append(categories, uint32(category))
+		}
 		devices = append(devices, &pb.DiscoveredDevice{
 			Ski:        svc.Ski,
 			Brand:      svc.Brand,
 			Model:      svc.Model,
 			Serial:     svc.Serial,
 			DeviceType: svc.Type,
+			Name:       svc.Name,
+			ShipId:     svc.ShipID,
+			Categories: categories,
 		})
 	}
 	return &pb.ListDevicesResponse{Devices: devices}, nil

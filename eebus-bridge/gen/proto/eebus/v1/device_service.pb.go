@@ -1521,13 +1521,20 @@ func (x *DeviceStructureDump) GetJson() string {
 }
 
 type DiscoveredDevice struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ski           string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
-	Brand         string                 `protobuf:"bytes,2,opt,name=brand,proto3" json:"brand,omitempty"`
-	Model         string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
-	Serial        string                 `protobuf:"bytes,4,opt,name=serial,proto3" json:"serial,omitempty"`
-	DeviceType    string                 `protobuf:"bytes,5,opt,name=device_type,json=deviceType,proto3" json:"device_type,omitempty"`
-	Host          string                 `protobuf:"bytes,6,opt,name=host,proto3" json:"host,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Ski        string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
+	Brand      string                 `protobuf:"bytes,2,opt,name=brand,proto3" json:"brand,omitempty"`
+	Model      string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	Serial     string                 `protobuf:"bytes,4,opt,name=serial,proto3" json:"serial,omitempty"`
+	DeviceType string                 `protobuf:"bytes,5,opt,name=device_type,json=deviceType,proto3" json:"device_type,omitempty"`
+	Host       string                 `protobuf:"bytes,6,opt,name=host,proto3" json:"host,omitempty"`
+	// mDNS service instance name. Many devices announce no brand/model but a
+	// recognisable instance name.
+	Name string `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	// SHIP identifier from the "id" TXT record.
+	ShipId string `protobuf:"bytes,8,opt,name=ship_id,json=shipId,proto3" json:"ship_id,omitempty"`
+	// SHIP device categories ("cat" TXT record), e.g. 4 = HVAC.
+	Categories    []uint32 `protobuf:"varint,9,rep,packed,name=categories,proto3" json:"categories,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1602,6 +1609,27 @@ func (x *DiscoveredDevice) GetHost() string {
 		return x.Host
 	}
 	return ""
+}
+
+func (x *DiscoveredDevice) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DiscoveredDevice) GetShipId() string {
+	if x != nil {
+		return x.ShipId
+	}
+	return ""
+}
+
+func (x *DiscoveredDevice) GetCategories() []uint32 {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
 }
 
 type ListDevicesResponse struct {
@@ -2634,7 +2662,7 @@ const file_eebus_v1_device_service_proto_rawDesc = "" +
 	"\fredacted_ski\x18\x01 \x01(\tR\vredactedSki\x12;\n" +
 	"\vcaptured_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"capturedAt\x12\x12\n" +
-	"\x04json\x18\x03 \x01(\tR\x04json\"\x9d\x01\n" +
+	"\x04json\x18\x03 \x01(\tR\x04json\"\xea\x01\n" +
 	"\x10DiscoveredDevice\x12\x10\n" +
 	"\x03ski\x18\x01 \x01(\tR\x03ski\x12\x14\n" +
 	"\x05brand\x18\x02 \x01(\tR\x05brand\x12\x14\n" +
@@ -2642,7 +2670,12 @@ const file_eebus_v1_device_service_proto_rawDesc = "" +
 	"\x06serial\x18\x04 \x01(\tR\x06serial\x12\x1f\n" +
 	"\vdevice_type\x18\x05 \x01(\tR\n" +
 	"deviceType\x12\x12\n" +
-	"\x04host\x18\x06 \x01(\tR\x04host\"K\n" +
+	"\x04host\x18\x06 \x01(\tR\x04host\x12\x12\n" +
+	"\x04name\x18\a \x01(\tR\x04name\x12\x17\n" +
+	"\aship_id\x18\b \x01(\tR\x06shipId\x12\x1e\n" +
+	"\n" +
+	"categories\x18\t \x03(\rR\n" +
+	"categories\"K\n" +
 	"\x13ListDevicesResponse\x124\n" +
 	"\adevices\x18\x01 \x03(\v2\x1a.eebus.v1.DiscoveredDeviceR\adevices\"&\n" +
 	"\x12RegisterSKIRequest\x12\x10\n" +

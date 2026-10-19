@@ -183,6 +183,13 @@ message DiscoveredDevice {
   string serial = 4;
   string device_type = 5;
   string host = 6;
+  // mDNS service instance name. Many devices announce no brand/model but a
+  // recognisable instance name.
+  string name = 7;
+  // SHIP identifier from the "id" TXT record.
+  string ship_id = 8;
+  // SHIP device categories ("cat" TXT record), e.g. 4 = HVAC.
+  repeated uint32 categories = 9;
 }
 
 message ListDevicesResponse {

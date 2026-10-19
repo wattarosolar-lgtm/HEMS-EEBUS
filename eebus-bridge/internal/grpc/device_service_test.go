@@ -719,6 +719,11 @@ func TestListDiscoveredDevicesIncludesAnnouncedDetails(t *testing.T) {
 		Model:  "VR940f",
 		Serial: "21251900203000000933084665N9",
 		Type:   "Generic",
+		Name:   "Vaillant-VR940f-0933084665",
+		ShipID: "Vaillant-EEBUS-0933084665",
+		Categories: []shipapi.DeviceCategoryType{
+			shipapi.DeviceCategoryTypeHVAC,
+		},
 	}})
 	svc := bridgegrpc.NewDeviceService(callbacks, bus, "local", eebus.NewDeviceRegistry(), &recordingTrustController{})
 
@@ -732,6 +737,12 @@ func TestListDiscoveredDevicesIncludesAnnouncedDetails(t *testing.T) {
 	got := discovered.Devices[0]
 	if got.Brand != "Vaillant" || got.Model != "VR940f" || got.Serial != "21251900203000000933084665N9" || got.DeviceType != "Generic" {
 		t.Fatalf("discovered device = %+v, want the announced mDNS details", got)
+	}
+	if got.Name != "Vaillant-VR940f-0933084665" || got.ShipId != "Vaillant-EEBUS-0933084665" {
+		t.Fatalf("name/ship id = %q / %q, want the announced mDNS instance name and SHIP id", got.Name, got.ShipId)
+	}
+	if len(got.Categories) != 1 || got.Categories[0] != uint32(shipapi.DeviceCategoryTypeHVAC) {
+		t.Fatalf("categories = %v, want [HVAC]", got.Categories)
 	}
 }
 

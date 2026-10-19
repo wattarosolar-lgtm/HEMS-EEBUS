@@ -370,20 +370,26 @@ class DeviceStructureDump(_message.Message):
     def __init__(self, redacted_ski: _Optional[str] = ..., captured_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., json: _Optional[str] = ...) -> None: ...
 
 class DiscoveredDevice(_message.Message):
-    __slots__ = ("ski", "brand", "model", "serial", "device_type", "host")
+    __slots__ = ("ski", "brand", "model", "serial", "device_type", "host", "name", "ship_id", "categories")
     SKI_FIELD_NUMBER: _ClassVar[int]
     BRAND_FIELD_NUMBER: _ClassVar[int]
     MODEL_FIELD_NUMBER: _ClassVar[int]
     SERIAL_FIELD_NUMBER: _ClassVar[int]
     DEVICE_TYPE_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    SHIP_ID_FIELD_NUMBER: _ClassVar[int]
+    CATEGORIES_FIELD_NUMBER: _ClassVar[int]
     ski: str
     brand: str
     model: str
     serial: str
     device_type: str
     host: str
-    def __init__(self, ski: _Optional[str] = ..., brand: _Optional[str] = ..., model: _Optional[str] = ..., serial: _Optional[str] = ..., device_type: _Optional[str] = ..., host: _Optional[str] = ...) -> None: ...
+    name: str
+    ship_id: str
+    categories: _containers.RepeatedScalarFieldContainer[int]
+    def __init__(self, ski: _Optional[str] = ..., brand: _Optional[str] = ..., model: _Optional[str] = ..., serial: _Optional[str] = ..., device_type: _Optional[str] = ..., host: _Optional[str] = ..., name: _Optional[str] = ..., ship_id: _Optional[str] = ..., categories: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class ListDevicesResponse(_message.Message):
     __slots__ = ("devices",)
