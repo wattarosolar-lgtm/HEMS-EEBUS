@@ -60,6 +60,8 @@ func (completeDeviceStatePayloads) AttachDHWSystemFunctionPayload(event *pb.DHWS
 	event.State = &pb.DHWSystemFunctionState{OperationMode: "auto"}
 }
 
+func (completeDeviceStatePayloads) RoomHeatingZones(string) []*pb.RoomHeatingZone { return nil }
+
 func (completeDeviceStatePayloads) AttachRoomHeatingPayload(event *pb.RoomHeatingEvent, _ string) bool {
 	value := 20.0
 	event.State = &pb.RoomHeatingState{CurrentTemperatureCelsius: &value}

@@ -112,6 +112,17 @@ func (fakePayloadSource) AttachRoomHeatingPayload(event *pb.RoomHeatingEvent, _ 
 	return true
 }
 
+func (fakePayloadSource) RoomHeatingZones(string) []*pb.RoomHeatingZone {
+	return []*pb.RoomHeatingZone{{
+		ZoneId: "5.1.1",
+		State: &pb.RoomHeatingState{
+			CurrentTemperatureCelsius: new(20.5),
+			Setpoint:                  &pb.RoomHeatingSetpoint{ValueCelsius: 21, Writable: true},
+			ZoneLabel:                 new("Zone 1"),
+		},
+	}}
+}
+
 func (fakePayloadSource) AttachOHPCFPayload(event *pb.OHPCFEvent, _ string, _ eebus.EventType) bool {
 	event.Flexibility = &pb.CompressorFlexibility{
 		Available: true, RequestedPowerEstimateW: new(1500.0),

@@ -72,6 +72,8 @@ func (*snapshotPayloads) AttachDHWSystemFunctionPayload(event *pb.DHWSystemFunct
 	event.State = &pb.DHWSystemFunctionState{OperationMode: "auto"}
 }
 
+func (*snapshotPayloads) RoomHeatingZones(string) []*pb.RoomHeatingZone { return nil }
+
 func (*snapshotPayloads) AttachRoomHeatingPayload(event *pb.RoomHeatingEvent, _ string) bool {
 	event.State = &pb.RoomHeatingState{Setpoint: &pb.RoomHeatingSetpoint{ValueCelsius: 0}}
 	return true

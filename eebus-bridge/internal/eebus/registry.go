@@ -2,6 +2,7 @@ package eebus
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 	"sync"
@@ -26,10 +27,11 @@ type DeviceInfo struct {
 	DeviceType       string
 	SoftwareRevision string
 	HardwareRevision string
-	// ZoneLabel is deviceClassificationUserData.userLabel read from the remote
-	// HeatingZone entity. Only that entity populates the function; the sibling
-	// HeatingCircuit and HVACRoom entities advertise it and return it empty.
-	ZoneLabel      string
+	// ZoneLabels maps a HeatingZone entity's zone ID (e.g. "5.1") to its
+	// deviceClassificationUserData.userLabel. Only that entity populates the
+	// function; the sibling HeatingCircuit and HVACRoom entities advertise it
+	// and return it empty. A label from an unknown entity is stored under "".
+	ZoneLabels     map[string]string
 	UseCases       []string
 	RemoteDevice   spineapi.DeviceRemoteInterface
 	RemoteEntities []spineapi.EntityRemoteInterface
@@ -523,11 +525,11 @@ func (r *DeviceRegistry) UpsertDeviceClassification(
 		info.HardwareRevision != previous.HardwareRevision
 }
 
-// UpsertZoneLabel stores the heating-zone user label reported by a remote
-// HeatingZone entity. An empty label is ignored so a sibling entity answering
+// UpsertZoneLabel stores the user label reported by the remote HeatingZone
+// entity with zoneID. An empty label is ignored so a sibling entity answering
 // the same function with empty data never clears a previously discovered label.
 // Returns true when the stored label changed, so callers can fan out a resync.
-func (r *DeviceRegistry) UpsertZoneLabel(ski, label string) bool {
+func (r *DeviceRegistry) UpsertZoneLabel(ski, zoneID, label string) bool {
 	if label == "" {
 		return false
 	}
@@ -540,19 +542,49 @@ func (r *DeviceRegistry) UpsertZoneLabel(ski, label string) bool {
 	r.catalog.mu.Lock()
 	defer r.catalog.mu.Unlock()
 	info := r.catalog.devices[ski]
-	previous := info.ZoneLabel
+	if info.ZoneLabels[zoneID] == label {
+		return false
+	}
+	// Copy on write: DeviceInfo values handed out earlier must not change.
+	labels := maps.Clone(info.ZoneLabels)
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	labels[zoneID] = label
 	info.SKI = ski
-	info.ZoneLabel = label
+	info.ZoneLabels = labels
 	r.catalog.devices[ski] = info
-	return info.ZoneLabel != previous
+	return true
 }
 
-// ZoneLabel returns the stored heating-zone user label for a device, if any.
-func (r *DeviceRegistry) ZoneLabel(ski string) string {
+// ZoneLabel returns the label of the heating zone containing the entity with
+// entityZoneID, e.g. HeatingZone "5.1" for HVACRoom "5.1.1". An empty
+// entityZoneID asks for the device's only label. Several candidates are
+// ambiguous and yield no label rather than a guess.
+func (r *DeviceRegistry) ZoneLabel(ski, entityZoneID string) string {
 	ski = NormalizeSKI(ski)
 	r.catalog.mu.RLock()
 	defer r.catalog.mu.RUnlock()
-	return r.catalog.devices[ski].ZoneLabel
+	labels := r.catalog.devices[ski].ZoneLabels
+	if entityZoneID == "" {
+		if len(labels) != 1 {
+			return ""
+		}
+		for _, label := range labels {
+			return label
+		}
+	}
+	found := ""
+	for zoneID, label := range labels {
+		if zoneID != entityZoneID && !zoneContains(zoneID, entityZoneID) {
+			continue
+		}
+		if found != "" {
+			return ""
+		}
+		found = label
+	}
+	return found
 }
 
 func (r *DeviceRegistry) RemoveDevice(ski string) {
@@ -762,6 +794,7 @@ func copyDeviceInfo(info DeviceInfo) DeviceInfo {
 	info.UseCases = append([]string(nil), info.UseCases...)
 	info.RemoteEntities = append([]spineapi.EntityRemoteInterface(nil), info.RemoteEntities...)
 	info.Entities = copyEntityInfos(info.Entities)
+	info.ZoneLabels = maps.Clone(info.ZoneLabels)
 	return info
 }
 

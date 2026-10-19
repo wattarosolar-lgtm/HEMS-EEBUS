@@ -26,6 +26,7 @@ type caCRHTClient interface {
 
 type roomHeatingTemperatureEntityResolver interface {
 	CompatibleEntity(string) eebus.EntityResolution
+	CompatibleEntities(string) []spineapi.EntityRemoteInterface
 }
 
 type roomHeatingTemperatureStateReader interface {
@@ -102,6 +103,14 @@ func (f *CRHTConfigurationFacade) CompatibleEntity(ski string) eebus.EntityResol
 	return f.resolver.CompatibleEntity(ski)
 }
 
+// CompatibleEntities lists the device's room entities, one per heating zone.
+func (f *CRHTConfigurationFacade) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if f == nil || f.resolver == nil {
+		return nil
+	}
+	return f.resolver.CompatibleEntities(ski)
+}
+
 func (f *CRHTConfigurationFacade) State(
 	entity spineapi.EntityRemoteInterface,
 ) (RoomHeatingSetpoint, error) {
@@ -164,7 +173,7 @@ func (f *CRHTConfigurationFacade) HandleEvent(
 		return
 	}
 	if f.bus != nil {
-		f.bus.Publish(eebus.Event{SKI: ski, Type: eventType})
+		f.bus.Publish(eebus.Event{SKI: ski, Type: eventType, ZoneID: eebus.ZoneID(entity)})
 	}
 }
 
@@ -177,6 +186,13 @@ func (r crhtEntityResolver) CompatibleEntity(ski string) eebus.EntityResolution 
 		return eebus.EntityResolution{}
 	}
 	return compatibleEntity(r.client.RemoteEntitiesScenarios(), ski)
+}
+
+func (r crhtEntityResolver) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if r.client == nil {
+		return nil
+	}
+	return compatibleEntities(r.client.RemoteEntitiesScenarios(), ski)
 }
 
 type upstreamRoomHeatingTemperatureReader struct {

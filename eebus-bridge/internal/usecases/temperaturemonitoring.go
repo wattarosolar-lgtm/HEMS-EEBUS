@@ -142,7 +142,7 @@ func (w *TemperatureMonitoringWrapper) HandleEvent(
 		return
 	}
 	if w.bus != nil {
-		w.bus.Publish(eebus.Event{SKI: ski, Type: eventType})
+		w.bus.Publish(eebus.Event{SKI: ski, Type: eventType, ZoneID: eebus.ZoneID(entity)})
 	}
 }
 
@@ -156,6 +156,27 @@ func (w *TemperatureMonitoringWrapper) Temperature(ski string) (float64, error) 
 		return 0, eebusapi.ErrDataNotAvailable
 	}
 	return w.uc.Temperature(resolution.Entity, model.UnitOfMeasurementTypedegC)
+}
+
+// EntityTemperature reads the temperature of one remote entity, e.g. the room
+// of one heating zone. Values the device marks as invalid are not available.
+func (w *TemperatureMonitoringWrapper) EntityTemperature(entity spineapi.EntityRemoteInterface) (float64, error) {
+	if w.uc == nil {
+		return 0, w.errNotInitialized
+	}
+	if entity == nil {
+		return 0, eebusapi.ErrDataNotAvailable
+	}
+	return w.uc.Temperature(entity, model.UnitOfMeasurementTypedegC)
+}
+
+// CompatibleEntities lists every entity of the device that reports this
+// temperature, in address order; for rooms one per heating zone.
+func (w *TemperatureMonitoringWrapper) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if w.uc == nil {
+		return nil
+	}
+	return compatibleEntities(w.uc.RemoteEntitiesScenarios(), ski)
 }
 
 func (w *TemperatureMonitoringWrapper) CompatibleEntity(ski string) eebus.EntityResolution {

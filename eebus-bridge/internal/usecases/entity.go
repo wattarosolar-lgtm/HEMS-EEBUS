@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"slices"
+
 	eebusapi "github.com/enbility/eebus-go/api"
 	spineapi "github.com/enbility/spine-go/api"
 
@@ -84,6 +86,53 @@ func compatibleEntity(scenarios []eebusapi.RemoteEntityScenarios, ski string) ee
 		}
 	}
 	return eebus.EntityResolution{DeviceCount: len(entitiesBySKI)}
+}
+
+// compatibleEntities returns every entity of the device with this SKI from a
+// use case's negotiated scenario list, in numeric address order. A device with
+// several heating zones exposes one room entity per zone; the order stays
+// stable across reconnects. An empty SKI lists nothing: callers resolve the
+// device first, so an ambiguous lookup can never pick a zone.
+func compatibleEntities(scenarios []eebusapi.RemoteEntityScenarios, ski string) []spineapi.EntityRemoteInterface {
+	want := eebus.NormalizeSKI(ski)
+	if want == "" {
+		return nil
+	}
+	var entities []spineapi.EntityRemoteInterface
+	for _, remote := range scenarios {
+		entity := remote.Entity
+		if entity == nil || entity.Device() == nil || eebus.NormalizeSKI(entity.Device().Ski()) != want {
+			continue
+		}
+		if !slices.Contains(entities, entity) {
+			entities = append(entities, entity)
+		}
+	}
+	slices.SortStableFunc(entities, eebus.CompareEntities)
+	return entities
+}
+
+// sameZoneEntity picks the candidate in the same zone as entity, i.e. at the
+// same address. Use cases negotiate their entities independently, so after a
+// reconnect the objects differ while the addresses stay the same. A single
+// candidate is the device's only zone and needs no address comparison.
+func sameZoneEntity(
+	candidates []spineapi.EntityRemoteInterface,
+	entity spineapi.EntityRemoteInterface,
+) spineapi.EntityRemoteInterface {
+	switch len(candidates) {
+	case 0:
+		return nil
+	case 1:
+		return candidates[0]
+	}
+	zone := eebus.ZoneID(entity)
+	for _, candidate := range candidates {
+		if eebus.ZoneID(candidate) == zone {
+			return candidate
+		}
+	}
+	return nil
 }
 
 func compatibleEntityForScenario(

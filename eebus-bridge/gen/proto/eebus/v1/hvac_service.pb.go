@@ -76,6 +76,102 @@ func (RoomHeatingEventType) EnumDescriptor() ([]byte, []int) {
 	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{0}
 }
 
+type RoomHeatingZone struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ZoneId        string                 `protobuf:"bytes,1,opt,name=zone_id,json=zoneId,proto3" json:"zone_id,omitempty"`
+	State         *RoomHeatingState      `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoomHeatingZone) Reset() {
+	*x = RoomHeatingZone{}
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoomHeatingZone) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoomHeatingZone) ProtoMessage() {}
+
+func (x *RoomHeatingZone) ProtoReflect() protoreflect.Message {
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoomHeatingZone.ProtoReflect.Descriptor instead.
+func (*RoomHeatingZone) Descriptor() ([]byte, []int) {
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *RoomHeatingZone) GetZoneId() string {
+	if x != nil {
+		return x.ZoneId
+	}
+	return ""
+}
+
+func (x *RoomHeatingZone) GetState() *RoomHeatingState {
+	if x != nil {
+		return x.State
+	}
+	return nil
+}
+
+type RoomHeatingZoneList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Zones         []*RoomHeatingZone     `protobuf:"bytes,1,rep,name=zones,proto3" json:"zones,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoomHeatingZoneList) Reset() {
+	*x = RoomHeatingZoneList{}
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoomHeatingZoneList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoomHeatingZoneList) ProtoMessage() {}
+
+func (x *RoomHeatingZoneList) ProtoReflect() protoreflect.Message {
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoomHeatingZoneList.ProtoReflect.Descriptor instead.
+func (*RoomHeatingZoneList) Descriptor() ([]byte, []int) {
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RoomHeatingZoneList) GetZones() []*RoomHeatingZone {
+	if x != nil {
+		return x.Zones
+	}
+	return nil
+}
+
 type RoomHeatingState struct {
 	state                     protoimpl.MessageState     `protogen:"open.v1"`
 	CurrentTemperatureCelsius *float64                   `protobuf:"fixed64,1,opt,name=current_temperature_celsius,json=currentTemperatureCelsius,proto3,oneof" json:"current_temperature_celsius,omitempty"`
@@ -91,7 +187,7 @@ type RoomHeatingState struct {
 
 func (x *RoomHeatingState) Reset() {
 	*x = RoomHeatingState{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[0]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +199,7 @@ func (x *RoomHeatingState) String() string {
 func (*RoomHeatingState) ProtoMessage() {}
 
 func (x *RoomHeatingState) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[0]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +212,7 @@ func (x *RoomHeatingState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomHeatingState.ProtoReflect.Descriptor instead.
 func (*RoomHeatingState) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{0}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RoomHeatingState) GetCurrentTemperatureCelsius() float64 {
@@ -160,7 +256,7 @@ type RoomHeatingSetpoint struct {
 
 func (x *RoomHeatingSetpoint) Reset() {
 	*x = RoomHeatingSetpoint{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[1]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -172,7 +268,7 @@ func (x *RoomHeatingSetpoint) String() string {
 func (*RoomHeatingSetpoint) ProtoMessage() {}
 
 func (x *RoomHeatingSetpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[1]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -185,7 +281,7 @@ func (x *RoomHeatingSetpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomHeatingSetpoint.ProtoReflect.Descriptor instead.
 func (*RoomHeatingSetpoint) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{1}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RoomHeatingSetpoint) GetValueCelsius() float64 {
@@ -234,7 +330,7 @@ type RoomHeatingSystemFunction struct {
 
 func (x *RoomHeatingSystemFunction) Reset() {
 	*x = RoomHeatingSystemFunction{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[2]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +342,7 @@ func (x *RoomHeatingSystemFunction) String() string {
 func (*RoomHeatingSystemFunction) ProtoMessage() {}
 
 func (x *RoomHeatingSystemFunction) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[2]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +355,7 @@ func (x *RoomHeatingSystemFunction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomHeatingSystemFunction.ProtoReflect.Descriptor instead.
 func (*RoomHeatingSystemFunction) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{2}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RoomHeatingSystemFunction) GetOperationMode() string {
@@ -284,16 +380,18 @@ func (x *RoomHeatingSystemFunction) GetModeWritable() bool {
 }
 
 type SetRoomHeatingTemperatureRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ski           string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
-	ValueCelsius  float64                `protobuf:"fixed64,2,opt,name=value_celsius,json=valueCelsius,proto3" json:"value_celsius,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Ski          string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
+	ValueCelsius float64                `protobuf:"fixed64,2,opt,name=value_celsius,json=valueCelsius,proto3" json:"value_celsius,omitempty"`
+	// Zone to write; may be omitted only for a device with exactly one zone.
+	ZoneId        *string `protobuf:"bytes,3,opt,name=zone_id,json=zoneId,proto3,oneof" json:"zone_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetRoomHeatingTemperatureRequest) Reset() {
 	*x = SetRoomHeatingTemperatureRequest{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[3]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +403,7 @@ func (x *SetRoomHeatingTemperatureRequest) String() string {
 func (*SetRoomHeatingTemperatureRequest) ProtoMessage() {}
 
 func (x *SetRoomHeatingTemperatureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[3]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +416,7 @@ func (x *SetRoomHeatingTemperatureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetRoomHeatingTemperatureRequest.ProtoReflect.Descriptor instead.
 func (*SetRoomHeatingTemperatureRequest) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{3}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SetRoomHeatingTemperatureRequest) GetSki() string {
@@ -335,17 +433,26 @@ func (x *SetRoomHeatingTemperatureRequest) GetValueCelsius() float64 {
 	return 0
 }
 
+func (x *SetRoomHeatingTemperatureRequest) GetZoneId() string {
+	if x != nil && x.ZoneId != nil {
+		return *x.ZoneId
+	}
+	return ""
+}
+
 type SetRoomHeatingModeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ski           string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
-	Mode          string                 `protobuf:"bytes,2,opt,name=mode,proto3" json:"mode,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Ski   string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
+	Mode  string                 `protobuf:"bytes,2,opt,name=mode,proto3" json:"mode,omitempty"`
+	// Zone to write; may be omitted only for a device with exactly one zone.
+	ZoneId        *string `protobuf:"bytes,3,opt,name=zone_id,json=zoneId,proto3,oneof" json:"zone_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetRoomHeatingModeRequest) Reset() {
 	*x = SetRoomHeatingModeRequest{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[4]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -357,7 +464,7 @@ func (x *SetRoomHeatingModeRequest) String() string {
 func (*SetRoomHeatingModeRequest) ProtoMessage() {}
 
 func (x *SetRoomHeatingModeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[4]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -370,7 +477,7 @@ func (x *SetRoomHeatingModeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetRoomHeatingModeRequest.ProtoReflect.Descriptor instead.
 func (*SetRoomHeatingModeRequest) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{4}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SetRoomHeatingModeRequest) GetSki() string {
@@ -387,18 +494,27 @@ func (x *SetRoomHeatingModeRequest) GetMode() string {
 	return ""
 }
 
+func (x *SetRoomHeatingModeRequest) GetZoneId() string {
+	if x != nil && x.ZoneId != nil {
+		return *x.ZoneId
+	}
+	return ""
+}
+
 type RoomHeatingEvent struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ski           string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
-	EventType     RoomHeatingEventType   `protobuf:"varint,2,opt,name=event_type,json=eventType,proto3,enum=eebus.v1.RoomHeatingEventType" json:"event_type,omitempty"`
-	State         *RoomHeatingState      `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Ski       string                 `protobuf:"bytes,1,opt,name=ski,proto3" json:"ski,omitempty"`
+	EventType RoomHeatingEventType   `protobuf:"varint,2,opt,name=event_type,json=eventType,proto3,enum=eebus.v1.RoomHeatingEventType" json:"event_type,omitempty"`
+	State     *RoomHeatingState      `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	// Zone the event belongs to, if known; state then describes this zone.
+	ZoneId        *string `protobuf:"bytes,4,opt,name=zone_id,json=zoneId,proto3,oneof" json:"zone_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RoomHeatingEvent) Reset() {
 	*x = RoomHeatingEvent{}
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[5]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +526,7 @@ func (x *RoomHeatingEvent) String() string {
 func (*RoomHeatingEvent) ProtoMessage() {}
 
 func (x *RoomHeatingEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_eebus_v1_hvac_service_proto_msgTypes[5]
+	mi := &file_eebus_v1_hvac_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +539,7 @@ func (x *RoomHeatingEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoomHeatingEvent.ProtoReflect.Descriptor instead.
 func (*RoomHeatingEvent) Descriptor() ([]byte, []int) {
-	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{5}
+	return file_eebus_v1_hvac_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RoomHeatingEvent) GetSki() string {
@@ -447,11 +563,23 @@ func (x *RoomHeatingEvent) GetState() *RoomHeatingState {
 	return nil
 }
 
+func (x *RoomHeatingEvent) GetZoneId() string {
+	if x != nil && x.ZoneId != nil {
+		return *x.ZoneId
+	}
+	return ""
+}
+
 var File_eebus_v1_hvac_service_proto protoreflect.FileDescriptor
 
 const file_eebus_v1_hvac_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1beebus/v1/hvac_service.proto\x12\beebus.v1\x1a\x15eebus/v1/common.proto\"\xb3\x02\n" +
+	"\x1beebus/v1/hvac_service.proto\x12\beebus.v1\x1a\x15eebus/v1/common.proto\"\\\n" +
+	"\x0fRoomHeatingZone\x12\x17\n" +
+	"\azone_id\x18\x01 \x01(\tR\x06zoneId\x120\n" +
+	"\x05state\x18\x02 \x01(\v2\x1a.eebus.v1.RoomHeatingStateR\x05state\"F\n" +
+	"\x13RoomHeatingZoneList\x12/\n" +
+	"\x05zones\x18\x01 \x03(\v2\x19.eebus.v1.RoomHeatingZoneR\x05zones\"\xb3\x02\n" +
 	"\x10RoomHeatingState\x12C\n" +
 	"\x1bcurrent_temperature_celsius\x18\x01 \x01(\x01H\x00R\x19currentTemperatureCelsius\x88\x01\x01\x129\n" +
 	"\bsetpoint\x18\x02 \x01(\v2\x1d.eebus.v1.RoomHeatingSetpointR\bsetpoint\x12L\n" +
@@ -471,26 +599,36 @@ const file_eebus_v1_hvac_service_proto_rawDesc = "" +
 	"\x19RoomHeatingSystemFunction\x12%\n" +
 	"\x0eoperation_mode\x18\x01 \x01(\tR\roperationMode\x12'\n" +
 	"\x0favailable_modes\x18\x02 \x03(\tR\x0eavailableModes\x12#\n" +
-	"\rmode_writable\x18\x03 \x01(\bR\fmodeWritable\"Y\n" +
+	"\rmode_writable\x18\x03 \x01(\bR\fmodeWritable\"\x83\x01\n" +
 	" SetRoomHeatingTemperatureRequest\x12\x10\n" +
 	"\x03ski\x18\x01 \x01(\tR\x03ski\x12#\n" +
-	"\rvalue_celsius\x18\x02 \x01(\x01R\fvalueCelsius\"A\n" +
+	"\rvalue_celsius\x18\x02 \x01(\x01R\fvalueCelsius\x12\x1c\n" +
+	"\azone_id\x18\x03 \x01(\tH\x00R\x06zoneId\x88\x01\x01B\n" +
+	"\n" +
+	"\b_zone_id\"k\n" +
 	"\x19SetRoomHeatingModeRequest\x12\x10\n" +
 	"\x03ski\x18\x01 \x01(\tR\x03ski\x12\x12\n" +
-	"\x04mode\x18\x02 \x01(\tR\x04mode\"\x95\x01\n" +
+	"\x04mode\x18\x02 \x01(\tR\x04mode\x12\x1c\n" +
+	"\azone_id\x18\x03 \x01(\tH\x00R\x06zoneId\x88\x01\x01B\n" +
+	"\n" +
+	"\b_zone_id\"\xbf\x01\n" +
 	"\x10RoomHeatingEvent\x12\x10\n" +
 	"\x03ski\x18\x01 \x01(\tR\x03ski\x12=\n" +
 	"\n" +
 	"event_type\x18\x02 \x01(\x0e2\x1e.eebus.v1.RoomHeatingEventTypeR\teventType\x120\n" +
-	"\x05state\x18\x03 \x01(\v2\x1a.eebus.v1.RoomHeatingStateR\x05state*\xef\x01\n" +
+	"\x05state\x18\x03 \x01(\v2\x1a.eebus.v1.RoomHeatingStateR\x05state\x12\x1c\n" +
+	"\azone_id\x18\x04 \x01(\tH\x00R\x06zoneId\x88\x01\x01B\n" +
+	"\n" +
+	"\b_zone_id*\xef\x01\n" +
 	"\x14RoomHeatingEventType\x12\"\n" +
 	"\x1eROOM_HEATING_EVENT_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ROOM_HEATING_EVENT_SUPPORT_UPDATED\x10\x01\x122\n" +
 	".ROOM_HEATING_EVENT_CURRENT_TEMPERATURE_UPDATED\x10\x02\x12'\n" +
 	"#ROOM_HEATING_EVENT_SETPOINT_UPDATED\x10\x03\x12.\n" +
-	"*ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED\x10\x042\xcf\x02\n" +
+	"*ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED\x10\x042\x9f\x03\n" +
 	"\vHVACService\x12E\n" +
-	"\x0eGetRoomHeating\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingState\x12X\n" +
+	"\x0eGetRoomHeating\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingState\x12N\n" +
+	"\x14ListRoomHeatingZones\x12\x17.eebus.v1.DeviceRequest\x1a\x1d.eebus.v1.RoomHeatingZoneList\x12X\n" +
 	"\x19SetRoomHeatingTemperature\x12*.eebus.v1.SetRoomHeatingTemperatureRequest\x1a\x0f.eebus.v1.Empty\x12J\n" +
 	"\x12SetRoomHeatingMode\x12#.eebus.v1.SetRoomHeatingModeRequest\x1a\x0f.eebus.v1.Empty\x12S\n" +
 	"\x1aSubscribeRoomHeatingEvents\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingEvent0\x01B=Z;github.com/volschin/eebus-bridge/gen/proto/eebus/v1;eebusv1b\x06proto3"
@@ -508,36 +646,42 @@ func file_eebus_v1_hvac_service_proto_rawDescGZIP() []byte {
 }
 
 var file_eebus_v1_hvac_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_eebus_v1_hvac_service_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_eebus_v1_hvac_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_eebus_v1_hvac_service_proto_goTypes = []any{
 	(RoomHeatingEventType)(0),                // 0: eebus.v1.RoomHeatingEventType
-	(*RoomHeatingState)(nil),                 // 1: eebus.v1.RoomHeatingState
-	(*RoomHeatingSetpoint)(nil),              // 2: eebus.v1.RoomHeatingSetpoint
-	(*RoomHeatingSystemFunction)(nil),        // 3: eebus.v1.RoomHeatingSystemFunction
-	(*SetRoomHeatingTemperatureRequest)(nil), // 4: eebus.v1.SetRoomHeatingTemperatureRequest
-	(*SetRoomHeatingModeRequest)(nil),        // 5: eebus.v1.SetRoomHeatingModeRequest
-	(*RoomHeatingEvent)(nil),                 // 6: eebus.v1.RoomHeatingEvent
-	(*DeviceRequest)(nil),                    // 7: eebus.v1.DeviceRequest
-	(*Empty)(nil),                            // 8: eebus.v1.Empty
+	(*RoomHeatingZone)(nil),                  // 1: eebus.v1.RoomHeatingZone
+	(*RoomHeatingZoneList)(nil),              // 2: eebus.v1.RoomHeatingZoneList
+	(*RoomHeatingState)(nil),                 // 3: eebus.v1.RoomHeatingState
+	(*RoomHeatingSetpoint)(nil),              // 4: eebus.v1.RoomHeatingSetpoint
+	(*RoomHeatingSystemFunction)(nil),        // 5: eebus.v1.RoomHeatingSystemFunction
+	(*SetRoomHeatingTemperatureRequest)(nil), // 6: eebus.v1.SetRoomHeatingTemperatureRequest
+	(*SetRoomHeatingModeRequest)(nil),        // 7: eebus.v1.SetRoomHeatingModeRequest
+	(*RoomHeatingEvent)(nil),                 // 8: eebus.v1.RoomHeatingEvent
+	(*DeviceRequest)(nil),                    // 9: eebus.v1.DeviceRequest
+	(*Empty)(nil),                            // 10: eebus.v1.Empty
 }
 var file_eebus_v1_hvac_service_proto_depIdxs = []int32{
-	2, // 0: eebus.v1.RoomHeatingState.setpoint:type_name -> eebus.v1.RoomHeatingSetpoint
-	3, // 1: eebus.v1.RoomHeatingState.system_function:type_name -> eebus.v1.RoomHeatingSystemFunction
-	0, // 2: eebus.v1.RoomHeatingEvent.event_type:type_name -> eebus.v1.RoomHeatingEventType
-	1, // 3: eebus.v1.RoomHeatingEvent.state:type_name -> eebus.v1.RoomHeatingState
-	7, // 4: eebus.v1.HVACService.GetRoomHeating:input_type -> eebus.v1.DeviceRequest
-	4, // 5: eebus.v1.HVACService.SetRoomHeatingTemperature:input_type -> eebus.v1.SetRoomHeatingTemperatureRequest
-	5, // 6: eebus.v1.HVACService.SetRoomHeatingMode:input_type -> eebus.v1.SetRoomHeatingModeRequest
-	7, // 7: eebus.v1.HVACService.SubscribeRoomHeatingEvents:input_type -> eebus.v1.DeviceRequest
-	1, // 8: eebus.v1.HVACService.GetRoomHeating:output_type -> eebus.v1.RoomHeatingState
-	8, // 9: eebus.v1.HVACService.SetRoomHeatingTemperature:output_type -> eebus.v1.Empty
-	8, // 10: eebus.v1.HVACService.SetRoomHeatingMode:output_type -> eebus.v1.Empty
-	6, // 11: eebus.v1.HVACService.SubscribeRoomHeatingEvents:output_type -> eebus.v1.RoomHeatingEvent
-	8, // [8:12] is the sub-list for method output_type
-	4, // [4:8] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3,  // 0: eebus.v1.RoomHeatingZone.state:type_name -> eebus.v1.RoomHeatingState
+	1,  // 1: eebus.v1.RoomHeatingZoneList.zones:type_name -> eebus.v1.RoomHeatingZone
+	4,  // 2: eebus.v1.RoomHeatingState.setpoint:type_name -> eebus.v1.RoomHeatingSetpoint
+	5,  // 3: eebus.v1.RoomHeatingState.system_function:type_name -> eebus.v1.RoomHeatingSystemFunction
+	0,  // 4: eebus.v1.RoomHeatingEvent.event_type:type_name -> eebus.v1.RoomHeatingEventType
+	3,  // 5: eebus.v1.RoomHeatingEvent.state:type_name -> eebus.v1.RoomHeatingState
+	9,  // 6: eebus.v1.HVACService.GetRoomHeating:input_type -> eebus.v1.DeviceRequest
+	9,  // 7: eebus.v1.HVACService.ListRoomHeatingZones:input_type -> eebus.v1.DeviceRequest
+	6,  // 8: eebus.v1.HVACService.SetRoomHeatingTemperature:input_type -> eebus.v1.SetRoomHeatingTemperatureRequest
+	7,  // 9: eebus.v1.HVACService.SetRoomHeatingMode:input_type -> eebus.v1.SetRoomHeatingModeRequest
+	9,  // 10: eebus.v1.HVACService.SubscribeRoomHeatingEvents:input_type -> eebus.v1.DeviceRequest
+	3,  // 11: eebus.v1.HVACService.GetRoomHeating:output_type -> eebus.v1.RoomHeatingState
+	2,  // 12: eebus.v1.HVACService.ListRoomHeatingZones:output_type -> eebus.v1.RoomHeatingZoneList
+	10, // 13: eebus.v1.HVACService.SetRoomHeatingTemperature:output_type -> eebus.v1.Empty
+	10, // 14: eebus.v1.HVACService.SetRoomHeatingMode:output_type -> eebus.v1.Empty
+	8,  // 15: eebus.v1.HVACService.SubscribeRoomHeatingEvents:output_type -> eebus.v1.RoomHeatingEvent
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_eebus_v1_hvac_service_proto_init() }
@@ -546,14 +690,17 @@ func file_eebus_v1_hvac_service_proto_init() {
 		return
 	}
 	file_eebus_v1_common_proto_init()
-	file_eebus_v1_hvac_service_proto_msgTypes[0].OneofWrappers = []any{}
+	file_eebus_v1_hvac_service_proto_msgTypes[2].OneofWrappers = []any{}
+	file_eebus_v1_hvac_service_proto_msgTypes[5].OneofWrappers = []any{}
+	file_eebus_v1_hvac_service_proto_msgTypes[6].OneofWrappers = []any{}
+	file_eebus_v1_hvac_service_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_eebus_v1_hvac_service_proto_rawDesc), len(file_eebus_v1_hvac_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

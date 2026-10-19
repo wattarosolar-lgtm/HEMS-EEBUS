@@ -74,6 +74,7 @@ type DHWPayloadSource interface {
 
 type HVACPayloadSource interface {
 	AttachRoomHeatingPayload(*pb.RoomHeatingEvent, string) bool
+	RoomHeatingZones(string) []*pb.RoomHeatingZone
 }
 
 type OHPCFPayloadSource interface {

@@ -36,7 +36,8 @@ type DeviceClassifier struct {
 	// SHIP reconnect.
 	mu        sync.Mutex
 	requested map[string]bool
-	// userRequested is the same guard for deviceClassificationUserData reads.
+	// userRequested is the same guard for deviceClassificationUserData reads,
+	// kept per heating zone: every HeatingZone entity carries its own label.
 	// It is deliberately a separate map: a manufacturer-data rejection must not
 	// suppress the user-data request, or vice versa.
 	userRequested map[string]bool
@@ -83,7 +84,7 @@ func (c *DeviceClassifier) HandleEvent(payload spineapi.EventPayload) {
 		// it empty. storeZoneLabel ignores empty labels, so an unsolicited
 		// response from another entity cannot clear a good value.
 		if payload.Entity == nil || isHeatingZone(payload.Entity) {
-			c.storeZoneLabel(payload.Ski, device, userLabel(data))
+			c.storeZoneLabel(payload.Ski, device, payload.Entity, userLabel(data))
 		}
 		return
 	}
@@ -211,11 +212,11 @@ func (c *DeviceClassifier) readOrRequestZoneLabel(
 		model.FunctionTypeDeviceClassificationUserData,
 	).(*model.DeviceClassificationUserDataType); ok && data != nil {
 		if label := userLabel(data); label != "" {
-			c.storeZoneLabel(ski, device, label)
+			c.storeZoneLabel(ski, device, entity, label)
 			return
 		}
 	}
-	key := observationSKI(ski, device)
+	key := observationSKI(ski, device) + "/" + eebus.ZoneID(entity)
 	c.mu.Lock()
 	already := c.userRequested[key]
 	c.userRequested[key] = true
@@ -244,15 +245,18 @@ func (c *DeviceClassifier) readOrRequestZoneLabel(
 	}
 }
 
+// storeZoneLabel keeps the label per HeatingZone entity, so a device with
+// several zones keeps every zone's name instead of the last one read.
 func (c *DeviceClassifier) storeZoneLabel(
 	ski string,
 	device spineapi.DeviceRemoteInterface,
+	entity spineapi.EntityRemoteInterface,
 	label string,
 ) {
 	if label == "" {
 		return
 	}
-	if c.registry.UpsertZoneLabel(observationSKI(ski, device), label) && c.bus != nil {
+	if c.registry.UpsertZoneLabel(observationSKI(ski, device), eebus.ZoneID(entity), label) && c.bus != nil {
 		c.bus.Publish(eebus.Event{
 			SKI:  observationSKI(ski, device),
 			Type: eebus.EventTypeDeviceClassificationUpdated,

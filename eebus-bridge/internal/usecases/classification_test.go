@@ -363,11 +363,16 @@ func zoneLabelEntity(
 	device *mocks.DeviceRemoteInterface,
 	entityType model.EntityTypeType,
 	data *model.DeviceClassificationUserDataType,
+	address ...model.AddressEntityType,
 ) *mocks.EntityRemoteInterface {
 	t.Helper()
+	if len(address) == 0 {
+		address = []model.AddressEntityType{5, 1}
+	}
 	entity := mocks.NewEntityRemoteInterface(t)
 	entity.On("EntityType").Return(entityType).Maybe()
 	entity.On("Device").Return(device).Maybe()
+	entity.On("Address").Return(&model.EntityAddressType{Entity: address}).Maybe()
 	remoteFeature := mocks.NewFeatureRemoteInterface(t)
 	remoteFeature.On("String").Return("DeviceClassification/server").Maybe()
 	remoteFeature.On("DataCopy", model.FunctionTypeDeviceClassificationManufacturerData).
@@ -395,6 +400,7 @@ func TestDeviceClassifierStoresZoneLabelFromHeatingZoneEntity(t *testing.T) {
 	device := mocks.NewDeviceRemoteInterface(t)
 	entity := mocks.NewEntityRemoteInterface(t)
 	entity.On("EntityType").Return(model.EntityTypeTypeHeatingZone).Maybe()
+	entity.On("Address").Return(&model.EntityAddressType{Entity: []model.AddressEntityType{5, 1}}).Maybe()
 
 	payload := spineapi.EventPayload{
 		Ski:    testValidUsecaseSKI,
@@ -404,7 +410,7 @@ func TestDeviceClassifierStoresZoneLabelFromHeatingZoneEntity(t *testing.T) {
 	}
 	classifier.HandleEvent(payload)
 
-	if label := registry.ZoneLabel(testValidUsecaseSKI); label != "Zone 1" {
+	if label := registry.ZoneLabel(testValidUsecaseSKI, ""); label != "Zone 1" {
 		t.Fatalf("zone label = %q", label)
 	}
 	if event := <-events; event.Type != eebus.EventTypeDeviceClassificationUpdated {
@@ -440,7 +446,7 @@ func TestDeviceClassifierIgnoresZoneLabelFromSiblingEntities(t *testing.T) {
 			Entity: entity,
 			Data:   &model.DeviceClassificationUserDataType{UserLabel: zoneLabelValue("wrong")},
 		})
-		if label := registry.ZoneLabel(testValidUsecaseSKI); label != "" {
+		if label := registry.ZoneLabel(testValidUsecaseSKI, ""); label != "" {
 			t.Fatalf("%s entity stored label %q", entityType, label)
 		}
 	}
@@ -448,6 +454,7 @@ func TestDeviceClassifierIgnoresZoneLabelFromSiblingEntities(t *testing.T) {
 	// A good label must survive a later empty answer from a sibling entity.
 	zone := mocks.NewEntityRemoteInterface(t)
 	zone.On("EntityType").Return(model.EntityTypeTypeHeatingZone).Maybe()
+	zone.On("Address").Return(&model.EntityAddressType{Entity: []model.AddressEntityType{5, 1}}).Maybe()
 	classifier.HandleEvent(spineapi.EventPayload{
 		Ski: testValidUsecaseSKI, Device: device, Entity: zone,
 		Data: &model.DeviceClassificationUserDataType{UserLabel: zoneLabelValue("Zone 1")},
@@ -456,7 +463,7 @@ func TestDeviceClassifierIgnoresZoneLabelFromSiblingEntities(t *testing.T) {
 		Ski: testValidUsecaseSKI, Device: device, Entity: zone,
 		Data: &model.DeviceClassificationUserDataType{},
 	})
-	if label := registry.ZoneLabel(testValidUsecaseSKI); label != "Zone 1" {
+	if label := registry.ZoneLabel(testValidUsecaseSKI, ""); label != "Zone 1" {
 		t.Fatalf("empty user data cleared the label: %q", label)
 	}
 }
@@ -481,14 +488,14 @@ func TestDeviceClassifierReadsCachedZoneLabelOnEntityDiscovery(t *testing.T) {
 		EventType: spineapi.EventTypeEntityChange, ChangeType: spineapi.ElementChangeAdd,
 	})
 
-	if label := registry.ZoneLabel(testValidUsecaseSKI); label != "Zone 1" {
+	if label := registry.ZoneLabel(testValidUsecaseSKI, ""); label != "Zone 1" {
 		t.Fatalf("cached zone label = %q", label)
 	}
 }
 
-// A device that never publishes the function must not be re-requested on every
+// A zone that never publishes the function must not be re-requested on every
 // reconnect: the VR940 rejects such reads and would otherwise flood the log.
-func TestDeviceClassifierRequestsZoneLabelOncePerDevice(t *testing.T) {
+func TestDeviceClassifierRequestsZoneLabelOncePerZone(t *testing.T) {
 	classifier := NewDeviceClassifier(eebus.NewDeviceRegistry(), nil)
 	local := mocks.NewEntityLocalInterface(t)
 	localFeature := mocks.NewFeatureLocalInterface(t)
@@ -501,6 +508,7 @@ func TestDeviceClassifierRequestsZoneLabelOncePerDevice(t *testing.T) {
 	deviceType := model.DeviceTypeTypeHeatgenerationSystem
 	device.On("DeviceType").Return(&deviceType).Maybe()
 	entity := zoneLabelEntity(t, device, model.EntityTypeTypeHeatingZone, nil)
+	second := zoneLabelEntity(t, device, model.EntityTypeTypeHeatingZone, nil, 6, 1)
 
 	counter := model.MsgCounterType(1)
 	requests := 0
@@ -525,9 +533,44 @@ func TestDeviceClassifierRequestsZoneLabelOncePerDevice(t *testing.T) {
 	}
 	classifier.HandleEvent(payload)
 	classifier.HandleEvent(payload)
+	payload.Entity = second
+	classifier.HandleEvent(payload)
+	classifier.HandleEvent(payload)
 
-	if requests != 1 {
-		t.Fatalf("user-data requests = %d, want 1", requests)
+	// Once per zone: the second zone's label is requested as well.
+	if requests != 2 {
+		t.Fatalf("user-data requests = %d, want 2", requests)
+	}
+}
+
+// Each HeatingZone keeps its own label; reading Zone 2 must not rename Zone 1.
+func TestDeviceClassifierKeepsALabelPerZone(t *testing.T) {
+	registry := eebus.NewDeviceRegistry()
+	classifier := NewDeviceClassifier(registry, nil)
+	classifier.localEntity = mocks.NewEntityLocalInterface(t)
+	device := mocks.NewDeviceRemoteInterface(t)
+
+	for _, zone := range []struct {
+		address []model.AddressEntityType
+		label   string
+	}{
+		{address: []model.AddressEntityType{5, 1}, label: "Zone 1"},
+		{address: []model.AddressEntityType{6, 1}, label: "Zone 2"},
+	} {
+		entity := mocks.NewEntityRemoteInterface(t)
+		entity.On("EntityType").Return(model.EntityTypeTypeHeatingZone).Maybe()
+		entity.On("Address").Return(&model.EntityAddressType{Entity: zone.address}).Maybe()
+		classifier.HandleEvent(spineapi.EventPayload{
+			Ski: testValidUsecaseSKI, Device: device, Entity: entity,
+			Data: &model.DeviceClassificationUserDataType{UserLabel: zoneLabelValue(zone.label)},
+		})
+	}
+
+	if label := registry.ZoneLabel(testValidUsecaseSKI, "5.1.1"); label != "Zone 1" {
+		t.Errorf("zone 5.1.1 label = %q, want Zone 1", label)
+	}
+	if label := registry.ZoneLabel(testValidUsecaseSKI, "6.1.1"); label != "Zone 2" {
+		t.Errorf("zone 6.1.1 label = %q, want Zone 2", label)
 	}
 }
 

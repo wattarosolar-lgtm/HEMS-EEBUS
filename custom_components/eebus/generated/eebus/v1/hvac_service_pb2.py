@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from . import common_pb2 as eebus_dot_v1_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x65\x65\x62us/v1/hvac_service.proto\x12\x08\x65\x65\x62us.v1\x1a\x15\x65\x65\x62us/v1/common.proto\"\xf3\x01\n\x10RoomHeatingState\x12(\n\x1b\x63urrent_temperature_celsius\x18\x01 \x01(\x01H\x00\x88\x01\x01\x12/\n\x08setpoint\x18\x02 \x01(\x0b\x32\x1d.eebus.v1.RoomHeatingSetpoint\x12<\n\x0fsystem_function\x18\x03 \x01(\x0b\x32#.eebus.v1.RoomHeatingSystemFunction\x12\x17\n\nzone_label\x18\x04 \x01(\tH\x01\x88\x01\x01\x42\x1e\n\x1c_current_temperature_celsiusB\r\n\x0b_zone_label\"~\n\x13RoomHeatingSetpoint\x12\x15\n\rvalue_celsius\x18\x01 \x01(\x01\x12\x13\n\x0bmin_celsius\x18\x02 \x01(\x01\x12\x13\n\x0bmax_celsius\x18\x03 \x01(\x01\x12\x14\n\x0cstep_celsius\x18\x04 \x01(\x01\x12\x10\n\x08writable\x18\x05 \x01(\x08\"c\n\x19RoomHeatingSystemFunction\x12\x16\n\x0eoperation_mode\x18\x01 \x01(\t\x12\x17\n\x0f\x61vailable_modes\x18\x02 \x03(\t\x12\x15\n\rmode_writable\x18\x03 \x01(\x08\"F\n SetRoomHeatingTemperatureRequest\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x15\n\rvalue_celsius\x18\x02 \x01(\x01\"6\n\x19SetRoomHeatingModeRequest\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x0c\n\x04mode\x18\x02 \x01(\t\"~\n\x10RoomHeatingEvent\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x32\n\nevent_type\x18\x02 \x01(\x0e\x32\x1e.eebus.v1.RoomHeatingEventType\x12)\n\x05state\x18\x03 \x01(\x0b\x32\x1a.eebus.v1.RoomHeatingState*\xef\x01\n\x14RoomHeatingEventType\x12\"\n\x1eROOM_HEATING_EVENT_UNSPECIFIED\x10\x00\x12&\n\"ROOM_HEATING_EVENT_SUPPORT_UPDATED\x10\x01\x12\x32\n.ROOM_HEATING_EVENT_CURRENT_TEMPERATURE_UPDATED\x10\x02\x12\'\n#ROOM_HEATING_EVENT_SETPOINT_UPDATED\x10\x03\x12.\n*ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED\x10\x04\x32\xcf\x02\n\x0bHVACService\x12\x45\n\x0eGetRoomHeating\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingState\x12X\n\x19SetRoomHeatingTemperature\x12*.eebus.v1.SetRoomHeatingTemperatureRequest\x1a\x0f.eebus.v1.Empty\x12J\n\x12SetRoomHeatingMode\x12#.eebus.v1.SetRoomHeatingModeRequest\x1a\x0f.eebus.v1.Empty\x12S\n\x1aSubscribeRoomHeatingEvents\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingEvent0\x01\x42=Z;github.com/volschin/eebus-bridge/gen/proto/eebus/v1;eebusv1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x65\x65\x62us/v1/hvac_service.proto\x12\x08\x65\x65\x62us.v1\x1a\x15\x65\x65\x62us/v1/common.proto\"M\n\x0fRoomHeatingZone\x12\x0f\n\x07zone_id\x18\x01 \x01(\t\x12)\n\x05state\x18\x02 \x01(\x0b\x32\x1a.eebus.v1.RoomHeatingState\"?\n\x13RoomHeatingZoneList\x12(\n\x05zones\x18\x01 \x03(\x0b\x32\x19.eebus.v1.RoomHeatingZone\"\xf3\x01\n\x10RoomHeatingState\x12(\n\x1b\x63urrent_temperature_celsius\x18\x01 \x01(\x01H\x00\x88\x01\x01\x12/\n\x08setpoint\x18\x02 \x01(\x0b\x32\x1d.eebus.v1.RoomHeatingSetpoint\x12<\n\x0fsystem_function\x18\x03 \x01(\x0b\x32#.eebus.v1.RoomHeatingSystemFunction\x12\x17\n\nzone_label\x18\x04 \x01(\tH\x01\x88\x01\x01\x42\x1e\n\x1c_current_temperature_celsiusB\r\n\x0b_zone_label\"~\n\x13RoomHeatingSetpoint\x12\x15\n\rvalue_celsius\x18\x01 \x01(\x01\x12\x13\n\x0bmin_celsius\x18\x02 \x01(\x01\x12\x13\n\x0bmax_celsius\x18\x03 \x01(\x01\x12\x14\n\x0cstep_celsius\x18\x04 \x01(\x01\x12\x10\n\x08writable\x18\x05 \x01(\x08\"c\n\x19RoomHeatingSystemFunction\x12\x16\n\x0eoperation_mode\x18\x01 \x01(\t\x12\x17\n\x0f\x61vailable_modes\x18\x02 \x03(\t\x12\x15\n\rmode_writable\x18\x03 \x01(\x08\"h\n SetRoomHeatingTemperatureRequest\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x15\n\rvalue_celsius\x18\x02 \x01(\x01\x12\x14\n\x07zone_id\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_zone_id\"X\n\x19SetRoomHeatingModeRequest\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x0c\n\x04mode\x18\x02 \x01(\t\x12\x14\n\x07zone_id\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_zone_id\"\xa0\x01\n\x10RoomHeatingEvent\x12\x0b\n\x03ski\x18\x01 \x01(\t\x12\x32\n\nevent_type\x18\x02 \x01(\x0e\x32\x1e.eebus.v1.RoomHeatingEventType\x12)\n\x05state\x18\x03 \x01(\x0b\x32\x1a.eebus.v1.RoomHeatingState\x12\x14\n\x07zone_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_zone_id*\xef\x01\n\x14RoomHeatingEventType\x12\"\n\x1eROOM_HEATING_EVENT_UNSPECIFIED\x10\x00\x12&\n\"ROOM_HEATING_EVENT_SUPPORT_UPDATED\x10\x01\x12\x32\n.ROOM_HEATING_EVENT_CURRENT_TEMPERATURE_UPDATED\x10\x02\x12\'\n#ROOM_HEATING_EVENT_SETPOINT_UPDATED\x10\x03\x12.\n*ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED\x10\x04\x32\x9f\x03\n\x0bHVACService\x12\x45\n\x0eGetRoomHeating\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingState\x12N\n\x14ListRoomHeatingZones\x12\x17.eebus.v1.DeviceRequest\x1a\x1d.eebus.v1.RoomHeatingZoneList\x12X\n\x19SetRoomHeatingTemperature\x12*.eebus.v1.SetRoomHeatingTemperatureRequest\x1a\x0f.eebus.v1.Empty\x12J\n\x12SetRoomHeatingMode\x12#.eebus.v1.SetRoomHeatingModeRequest\x1a\x0f.eebus.v1.Empty\x12S\n\x1aSubscribeRoomHeatingEvents\x12\x17.eebus.v1.DeviceRequest\x1a\x1a.eebus.v1.RoomHeatingEvent0\x01\x42=Z;github.com/volschin/eebus-bridge/gen/proto/eebus/v1;eebusv1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,20 +33,24 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'eebus.v1.hvac_service_pb2',
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z;github.com/volschin/eebus-bridge/gen/proto/eebus/v1;eebusv1'
-  _globals['_ROOMHEATINGEVENTTYPE']._serialized_start=796
-  _globals['_ROOMHEATINGEVENTTYPE']._serialized_end=1035
-  _globals['_ROOMHEATINGSTATE']._serialized_start=65
-  _globals['_ROOMHEATINGSTATE']._serialized_end=308
-  _globals['_ROOMHEATINGSETPOINT']._serialized_start=310
-  _globals['_ROOMHEATINGSETPOINT']._serialized_end=436
-  _globals['_ROOMHEATINGSYSTEMFUNCTION']._serialized_start=438
-  _globals['_ROOMHEATINGSYSTEMFUNCTION']._serialized_end=537
-  _globals['_SETROOMHEATINGTEMPERATUREREQUEST']._serialized_start=539
-  _globals['_SETROOMHEATINGTEMPERATUREREQUEST']._serialized_end=609
-  _globals['_SETROOMHEATINGMODEREQUEST']._serialized_start=611
-  _globals['_SETROOMHEATINGMODEREQUEST']._serialized_end=665
-  _globals['_ROOMHEATINGEVENT']._serialized_start=667
-  _globals['_ROOMHEATINGEVENT']._serialized_end=793
-  _globals['_HVACSERVICE']._serialized_start=1038
-  _globals['_HVACSERVICE']._serialized_end=1373
+  _globals['_ROOMHEATINGEVENTTYPE']._serialized_start=1043
+  _globals['_ROOMHEATINGEVENTTYPE']._serialized_end=1282
+  _globals['_ROOMHEATINGZONE']._serialized_start=64
+  _globals['_ROOMHEATINGZONE']._serialized_end=141
+  _globals['_ROOMHEATINGZONELIST']._serialized_start=143
+  _globals['_ROOMHEATINGZONELIST']._serialized_end=206
+  _globals['_ROOMHEATINGSTATE']._serialized_start=209
+  _globals['_ROOMHEATINGSTATE']._serialized_end=452
+  _globals['_ROOMHEATINGSETPOINT']._serialized_start=454
+  _globals['_ROOMHEATINGSETPOINT']._serialized_end=580
+  _globals['_ROOMHEATINGSYSTEMFUNCTION']._serialized_start=582
+  _globals['_ROOMHEATINGSYSTEMFUNCTION']._serialized_end=681
+  _globals['_SETROOMHEATINGTEMPERATUREREQUEST']._serialized_start=683
+  _globals['_SETROOMHEATINGTEMPERATUREREQUEST']._serialized_end=787
+  _globals['_SETROOMHEATINGMODEREQUEST']._serialized_start=789
+  _globals['_SETROOMHEATINGMODEREQUEST']._serialized_end=877
+  _globals['_ROOMHEATINGEVENT']._serialized_start=880
+  _globals['_ROOMHEATINGEVENT']._serialized_end=1040
+  _globals['_HVACSERVICE']._serialized_start=1285
+  _globals['_HVACSERVICE']._serialized_end=1700
 # @@protoc_insertion_point(module_scope)

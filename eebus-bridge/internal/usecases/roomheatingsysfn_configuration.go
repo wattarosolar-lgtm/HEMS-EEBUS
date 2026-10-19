@@ -24,6 +24,7 @@ type caCRHSFClient interface {
 
 type roomHeatingSystemFunctionEntityResolver interface {
 	CompatibleEntity(string) eebus.EntityResolution
+	CompatibleEntities(string) []spineapi.EntityRemoteInterface
 }
 
 type roomHeatingSystemFunctionCapabilityInspector interface {
@@ -96,6 +97,14 @@ func (f *CRHSFConfigurationFacade) CompatibleEntity(ski string) eebus.EntityReso
 	return f.resolver.CompatibleEntity(ski)
 }
 
+// CompatibleEntities lists the device's room entities, one per heating zone.
+func (f *CRHSFConfigurationFacade) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if f == nil || f.resolver == nil {
+		return nil
+	}
+	return f.resolver.CompatibleEntities(ski)
+}
+
 func (f *CRHSFConfigurationFacade) State(
 	entity spineapi.EntityRemoteInterface,
 ) (RoomHeatingSystemFunctionState, error) {
@@ -125,6 +134,13 @@ func (r crhsfEntityResolver) CompatibleEntity(ski string) eebus.EntityResolution
 		return eebus.EntityResolution{}
 	}
 	return compatibleEntity(r.useCase.RemoteEntitiesScenarios(), ski)
+}
+
+func (r crhsfEntityResolver) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if r.useCase == nil {
+		return nil
+	}
+	return compatibleEntities(r.useCase.RemoteEntitiesScenarios(), ski)
 }
 
 // bridgeRoomHeatingSystemFunctionCapabilityInspector is intentionally

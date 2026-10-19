@@ -147,3 +147,55 @@ func TestCompatibleEntityNilUseCase(t *testing.T) {
 		t.Errorf("CompatibleEntity on un-set-up wrapper = %+v, want no match", got)
 	}
 }
+
+func zoneScenario(
+	t *testing.T,
+	device *mocks.DeviceRemoteInterface,
+	address ...model.AddressEntityType,
+) eebusapi.RemoteEntityScenarios {
+	t.Helper()
+	entity := mocks.NewEntityRemoteInterface(t)
+	entity.On("Device").Return(device).Maybe()
+	entity.On("Address").Return(&model.EntityAddressType{Entity: address}).Maybe()
+	return eebusapi.RemoteEntityScenarios{Entity: entity}
+}
+
+func TestCompatibleEntitiesListsZonesInAddressOrder(t *testing.T) {
+	device := mocks.NewDeviceRemoteInterface(t)
+	device.On("Ski").Return("ab:cd").Maybe()
+	other := mocks.NewDeviceRemoteInterface(t)
+	other.On("Ski").Return("ffff").Maybe()
+	zone10 := zoneScenario(t, device, 10, 1, 1)
+	zone2 := zoneScenario(t, device, 2, 1, 1)
+	foreign := zoneScenario(t, other, 1, 1, 1)
+	scenarios := []eebusapi.RemoteEntityScenarios{zone10, foreign, {Entity: nil}, zone2, zone2}
+
+	got := compatibleEntities(scenarios, "ABCD")
+	if len(got) != 2 || got[0] != zone2.Entity || got[1] != zone10.Entity {
+		t.Fatalf("compatibleEntities = %v, want zones 2.1.1 and 10.1.1 in that order", got)
+	}
+	if first, second := eebus.ZoneID(got[0]), eebus.ZoneID(got[1]); first != "2.1.1" || second != "10.1.1" {
+		t.Fatalf("zone IDs = %q, %q", first, second)
+	}
+	// Without a device the zones of several devices must never be mixed.
+	if got := compatibleEntities(scenarios, ""); got != nil {
+		t.Fatalf("empty SKI listed %d zones, want none", len(got))
+	}
+}
+
+func TestSameZoneEntityMatchesByAddress(t *testing.T) {
+	device := mocks.NewDeviceRemoteInterface(t)
+	zone1 := zoneScenario(t, device, 5, 1, 1).Entity
+	zone2 := zoneScenario(t, device, 6, 1, 1).Entity
+	reconnectedZone2 := zoneScenario(t, device, 6, 1, 1).Entity
+
+	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1, zone2}, reconnectedZone2); got != zone2 {
+		t.Fatal("sameZoneEntity did not match the entity at the same address")
+	}
+	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1}, reconnectedZone2); got != zone1 {
+		t.Fatal("a single candidate is the device's only zone")
+	}
+	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1, zoneScenario(t, device, 7).Entity}, zone2); got != nil {
+		t.Fatal("sameZoneEntity picked an entity of another zone")
+	}
+}

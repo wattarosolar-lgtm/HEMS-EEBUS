@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	HVACService_GetRoomHeating_FullMethodName             = "/eebus.v1.HVACService/GetRoomHeating"
+	HVACService_ListRoomHeatingZones_FullMethodName       = "/eebus.v1.HVACService/ListRoomHeatingZones"
 	HVACService_SetRoomHeatingTemperature_FullMethodName  = "/eebus.v1.HVACService/SetRoomHeatingTemperature"
 	HVACService_SetRoomHeatingMode_FullMethodName         = "/eebus.v1.HVACService/SetRoomHeatingMode"
 	HVACService_SubscribeRoomHeatingEvents_FullMethodName = "/eebus.v1.HVACService/SubscribeRoomHeatingEvents"
@@ -31,8 +32,18 @@ const (
 //
 // HVACService exposes the room-heating Configuration use cases validated
 // against the Vaillant VR940 HVACRoom entity.
+//
+// A device may have several heating zones, each with its own HVACRoom entity.
+// A zone is addressed by zone_id, the entity's SPINE address joined with dots
+// (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+// exactly one zone; with several zones they fail with FAILED_PRECONDITION
+// rather than guess. An unknown zone_id is NOT_FOUND.
 type HVACServiceClient interface {
+	// GetRoomHeating returns the device's first zone in address order. Use
+	// ListRoomHeatingZones for devices with several zones.
 	GetRoomHeating(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*RoomHeatingState, error)
+	// ListRoomHeatingZones returns every readable zone in address order.
+	ListRoomHeatingZones(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*RoomHeatingZoneList, error)
 	SetRoomHeatingTemperature(ctx context.Context, in *SetRoomHeatingTemperatureRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetRoomHeatingMode(ctx context.Context, in *SetRoomHeatingModeRequest, opts ...grpc.CallOption) (*Empty, error)
 	SubscribeRoomHeatingEvents(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RoomHeatingEvent], error)
@@ -50,6 +61,16 @@ func (c *hVACServiceClient) GetRoomHeating(ctx context.Context, in *DeviceReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RoomHeatingState)
 	err := c.cc.Invoke(ctx, HVACService_GetRoomHeating_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hVACServiceClient) ListRoomHeatingZones(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*RoomHeatingZoneList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RoomHeatingZoneList)
+	err := c.cc.Invoke(ctx, HVACService_ListRoomHeatingZones_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +122,18 @@ type HVACService_SubscribeRoomHeatingEventsClient = grpc.ServerStreamingClient[R
 //
 // HVACService exposes the room-heating Configuration use cases validated
 // against the Vaillant VR940 HVACRoom entity.
+//
+// A device may have several heating zones, each with its own HVACRoom entity.
+// A zone is addressed by zone_id, the entity's SPINE address joined with dots
+// (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+// exactly one zone; with several zones they fail with FAILED_PRECONDITION
+// rather than guess. An unknown zone_id is NOT_FOUND.
 type HVACServiceServer interface {
+	// GetRoomHeating returns the device's first zone in address order. Use
+	// ListRoomHeatingZones for devices with several zones.
 	GetRoomHeating(context.Context, *DeviceRequest) (*RoomHeatingState, error)
+	// ListRoomHeatingZones returns every readable zone in address order.
+	ListRoomHeatingZones(context.Context, *DeviceRequest) (*RoomHeatingZoneList, error)
 	SetRoomHeatingTemperature(context.Context, *SetRoomHeatingTemperatureRequest) (*Empty, error)
 	SetRoomHeatingMode(context.Context, *SetRoomHeatingModeRequest) (*Empty, error)
 	SubscribeRoomHeatingEvents(*DeviceRequest, grpc.ServerStreamingServer[RoomHeatingEvent]) error
@@ -118,6 +149,9 @@ type UnimplementedHVACServiceServer struct{}
 
 func (UnimplementedHVACServiceServer) GetRoomHeating(context.Context, *DeviceRequest) (*RoomHeatingState, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRoomHeating not implemented")
+}
+func (UnimplementedHVACServiceServer) ListRoomHeatingZones(context.Context, *DeviceRequest) (*RoomHeatingZoneList, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRoomHeatingZones not implemented")
 }
 func (UnimplementedHVACServiceServer) SetRoomHeatingTemperature(context.Context, *SetRoomHeatingTemperatureRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetRoomHeatingTemperature not implemented")
@@ -163,6 +197,24 @@ func _HVACService_GetRoomHeating_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(HVACServiceServer).GetRoomHeating(ctx, req.(*DeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HVACService_ListRoomHeatingZones_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HVACServiceServer).ListRoomHeatingZones(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HVACService_ListRoomHeatingZones_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HVACServiceServer).ListRoomHeatingZones(ctx, req.(*DeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -224,6 +276,10 @@ var HVACService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRoomHeating",
 			Handler:    _HVACService_GetRoomHeating_Handler,
+		},
+		{
+			MethodName: "ListRoomHeatingZones",
+			Handler:    _HVACService_ListRoomHeatingZones_Handler,
 		},
 		{
 			MethodName: "SetRoomHeatingTemperature",

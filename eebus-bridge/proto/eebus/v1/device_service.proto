@@ -330,6 +330,9 @@ message DeviceSnapshot {
   string local_ski = 27;
   // Per-leaf availability refines aggregate section status for partial reads.
   repeated SnapshotFieldStatus field_states = 28;
+  // Every heating zone in address order; room_heating repeats the first one
+  // for single-zone clients. Availability follows room_heating_state.
+  repeated RoomHeatingZone room_heating_zones = 29;
 }
 
 // EventAvailability makes an adapter read failure explicit. An update event

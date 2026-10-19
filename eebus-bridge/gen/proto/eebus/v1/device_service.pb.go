@@ -2230,9 +2230,12 @@ type DeviceSnapshot struct {
 	DeviceDiagnosticsState     SnapshotValueState      `protobuf:"varint,26,opt,name=device_diagnostics_state,json=deviceDiagnosticsState,proto3,enum=eebus.v1.SnapshotValueState" json:"device_diagnostics_state,omitempty"`
 	LocalSki                   string                  `protobuf:"bytes,27,opt,name=local_ski,json=localSki,proto3" json:"local_ski,omitempty"`
 	// Per-leaf availability refines aggregate section status for partial reads.
-	FieldStates   []*SnapshotFieldStatus `protobuf:"bytes,28,rep,name=field_states,json=fieldStates,proto3" json:"field_states,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FieldStates []*SnapshotFieldStatus `protobuf:"bytes,28,rep,name=field_states,json=fieldStates,proto3" json:"field_states,omitempty"`
+	// Every heating zone in address order; room_heating repeats the first one
+	// for single-zone clients. Availability follows room_heating_state.
+	RoomHeatingZones []*RoomHeatingZone `protobuf:"bytes,29,rep,name=room_heating_zones,json=roomHeatingZones,proto3" json:"room_heating_zones,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *DeviceSnapshot) Reset() {
@@ -2457,6 +2460,13 @@ func (x *DeviceSnapshot) GetLocalSki() string {
 func (x *DeviceSnapshot) GetFieldStates() []*SnapshotFieldStatus {
 	if x != nil {
 		return x.FieldStates
+	}
+	return nil
+}
+
+func (x *DeviceSnapshot) GetRoomHeatingZones() []*RoomHeatingZone {
+	if x != nil {
+		return x.RoomHeatingZones
 	}
 	return nil
 }
@@ -2717,7 +2727,7 @@ const file_eebus_v1_device_service_proto_rawDesc = "" +
 	"\apayload\"t\n" +
 	"\x13SnapshotFieldStatus\x12)\n" +
 	"\x02id\x18\x01 \x01(\x0e2\x19.eebus.v1.SnapshotFieldIdR\x02id\x122\n" +
-	"\x05state\x18\x02 \x01(\x0e2\x1c.eebus.v1.SnapshotValueStateR\x05state\"\x8a\x0f\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x1c.eebus.v1.SnapshotValueStateR\x05state\"\xd3\x0f\n" +
 	"\x0eDeviceSnapshot\x12\x10\n" +
 	"\x03ski\x18\x01 \x01(\tR\x03ski\x12;\n" +
 	"\vcaptured_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
@@ -2750,7 +2760,8 @@ const file_eebus_v1_device_service_proto_rawDesc = "" +
 	"\x12device_diagnostics\x18\x19 \x01(\v2\x1f.eebus.v1.DeviceDiagnosticsDataR\x11deviceDiagnostics\x12V\n" +
 	"\x18device_diagnostics_state\x18\x1a \x01(\x0e2\x1c.eebus.v1.SnapshotValueStateR\x16deviceDiagnosticsState\x12\x1b\n" +
 	"\tlocal_ski\x18\x1b \x01(\tR\blocalSki\x12@\n" +
-	"\ffield_states\x18\x1c \x03(\v2\x1d.eebus.v1.SnapshotFieldStatusR\vfieldStates\"\xa5\x01\n" +
+	"\ffield_states\x18\x1c \x03(\v2\x1d.eebus.v1.SnapshotFieldStatusR\vfieldStates\x12G\n" +
+	"\x12room_heating_zones\x18\x1d \x03(\v2\x19.eebus.v1.RoomHeatingZoneR\x10roomHeatingZones\"\xa5\x01\n" +
 	"\x13DeviceStateDHWEvent\x126\n" +
 	"\vtemperature\x18\x01 \x01(\v2\x12.eebus.v1.DHWEventH\x00R\vtemperature\x12K\n" +
 	"\x0fsystem_function\x18\x02 \x01(\v2 .eebus.v1.DHWSystemFunctionEventH\x00R\x0esystemFunctionB\t\n" +
@@ -2940,10 +2951,11 @@ var file_eebus_v1_device_service_proto_goTypes = []any{
 	(*RoomHeatingState)(nil),             // 44: eebus.v1.RoomHeatingState
 	(*CompressorFlexibility)(nil),        // 45: eebus.v1.CompressorFlexibility
 	(*DeviceDiagnosticsData)(nil),        // 46: eebus.v1.DeviceDiagnosticsData
-	(*DHWEvent)(nil),                     // 47: eebus.v1.DHWEvent
-	(*DHWSystemFunctionEvent)(nil),       // 48: eebus.v1.DHWSystemFunctionEvent
-	(*Empty)(nil),                        // 49: eebus.v1.Empty
-	(*DeviceRequest)(nil),                // 50: eebus.v1.DeviceRequest
+	(*RoomHeatingZone)(nil),              // 47: eebus.v1.RoomHeatingZone
+	(*DHWEvent)(nil),                     // 48: eebus.v1.DHWEvent
+	(*DHWSystemFunctionEvent)(nil),       // 49: eebus.v1.DHWSystemFunctionEvent
+	(*Empty)(nil),                        // 50: eebus.v1.Empty
+	(*DeviceRequest)(nil),                // 51: eebus.v1.DeviceRequest
 }
 var file_eebus_v1_device_service_proto_depIdxs = []int32{
 	0,  // 0: eebus.v1.DeviceCapability.id:type_name -> eebus.v1.CapabilityId
@@ -3012,40 +3024,41 @@ var file_eebus_v1_device_service_proto_depIdxs = []int32{
 	46, // 63: eebus.v1.DeviceSnapshot.device_diagnostics:type_name -> eebus.v1.DeviceDiagnosticsData
 	6,  // 64: eebus.v1.DeviceSnapshot.device_diagnostics_state:type_name -> eebus.v1.SnapshotValueState
 	29, // 65: eebus.v1.DeviceSnapshot.field_states:type_name -> eebus.v1.SnapshotFieldStatus
-	47, // 66: eebus.v1.DeviceStateDHWEvent.temperature:type_name -> eebus.v1.DHWEvent
-	48, // 67: eebus.v1.DeviceStateDHWEvent.system_function:type_name -> eebus.v1.DHWSystemFunctionEvent
-	9,  // 68: eebus.v1.ResyncRequired.reason:type_name -> eebus.v1.ResyncReason
-	49, // 69: eebus.v1.DeviceService.GetStatus:input_type -> eebus.v1.Empty
-	49, // 70: eebus.v1.DeviceService.GetServerInfo:input_type -> eebus.v1.Empty
-	50, // 71: eebus.v1.DeviceService.GetDeviceStatus:input_type -> eebus.v1.DeviceRequest
-	50, // 72: eebus.v1.DeviceService.GetDeviceCapabilities:input_type -> eebus.v1.DeviceRequest
-	50, // 73: eebus.v1.DeviceService.GetDeviceSnapshot:input_type -> eebus.v1.DeviceRequest
-	50, // 74: eebus.v1.DeviceService.GetDeviceDiagnostics:input_type -> eebus.v1.DeviceRequest
-	49, // 75: eebus.v1.DeviceService.ListDiscoveredDevices:input_type -> eebus.v1.Empty
-	24, // 76: eebus.v1.DeviceService.RegisterRemoteSKI:input_type -> eebus.v1.RegisterSKIRequest
-	24, // 77: eebus.v1.DeviceService.UnregisterRemoteSKI:input_type -> eebus.v1.RegisterSKIRequest
-	49, // 78: eebus.v1.DeviceService.ListPairedDevices:input_type -> eebus.v1.Empty
-	49, // 79: eebus.v1.DeviceService.SubscribeDeviceEvents:input_type -> eebus.v1.Empty
-	50, // 80: eebus.v1.DeviceService.SubscribeDeviceState:input_type -> eebus.v1.DeviceRequest
-	50, // 81: eebus.v1.DeviceService.GetDeviceStructureDump:input_type -> eebus.v1.DeviceRequest
-	13, // 82: eebus.v1.DeviceService.GetStatus:output_type -> eebus.v1.ServiceStatus
-	14, // 83: eebus.v1.DeviceService.GetServerInfo:output_type -> eebus.v1.ServerInfo
-	15, // 84: eebus.v1.DeviceService.GetDeviceStatus:output_type -> eebus.v1.DeviceStatus
-	12, // 85: eebus.v1.DeviceService.GetDeviceCapabilities:output_type -> eebus.v1.DeviceCapabilities
-	30, // 86: eebus.v1.DeviceService.GetDeviceSnapshot:output_type -> eebus.v1.DeviceSnapshot
-	20, // 87: eebus.v1.DeviceService.GetDeviceDiagnostics:output_type -> eebus.v1.DeviceOperationalDiagnostics
-	23, // 88: eebus.v1.DeviceService.ListDiscoveredDevices:output_type -> eebus.v1.ListDevicesResponse
-	49, // 89: eebus.v1.DeviceService.RegisterRemoteSKI:output_type -> eebus.v1.Empty
-	49, // 90: eebus.v1.DeviceService.UnregisterRemoteSKI:output_type -> eebus.v1.Empty
-	26, // 91: eebus.v1.DeviceService.ListPairedDevices:output_type -> eebus.v1.ListPairedDevicesResponse
-	27, // 92: eebus.v1.DeviceService.SubscribeDeviceEvents:output_type -> eebus.v1.DeviceEvent
-	28, // 93: eebus.v1.DeviceService.SubscribeDeviceState:output_type -> eebus.v1.DeviceStateEvent
-	21, // 94: eebus.v1.DeviceService.GetDeviceStructureDump:output_type -> eebus.v1.DeviceStructureDump
-	82, // [82:95] is the sub-list for method output_type
-	69, // [69:82] is the sub-list for method input_type
-	69, // [69:69] is the sub-list for extension type_name
-	69, // [69:69] is the sub-list for extension extendee
-	0,  // [0:69] is the sub-list for field type_name
+	47, // 66: eebus.v1.DeviceSnapshot.room_heating_zones:type_name -> eebus.v1.RoomHeatingZone
+	48, // 67: eebus.v1.DeviceStateDHWEvent.temperature:type_name -> eebus.v1.DHWEvent
+	49, // 68: eebus.v1.DeviceStateDHWEvent.system_function:type_name -> eebus.v1.DHWSystemFunctionEvent
+	9,  // 69: eebus.v1.ResyncRequired.reason:type_name -> eebus.v1.ResyncReason
+	50, // 70: eebus.v1.DeviceService.GetStatus:input_type -> eebus.v1.Empty
+	50, // 71: eebus.v1.DeviceService.GetServerInfo:input_type -> eebus.v1.Empty
+	51, // 72: eebus.v1.DeviceService.GetDeviceStatus:input_type -> eebus.v1.DeviceRequest
+	51, // 73: eebus.v1.DeviceService.GetDeviceCapabilities:input_type -> eebus.v1.DeviceRequest
+	51, // 74: eebus.v1.DeviceService.GetDeviceSnapshot:input_type -> eebus.v1.DeviceRequest
+	51, // 75: eebus.v1.DeviceService.GetDeviceDiagnostics:input_type -> eebus.v1.DeviceRequest
+	50, // 76: eebus.v1.DeviceService.ListDiscoveredDevices:input_type -> eebus.v1.Empty
+	24, // 77: eebus.v1.DeviceService.RegisterRemoteSKI:input_type -> eebus.v1.RegisterSKIRequest
+	24, // 78: eebus.v1.DeviceService.UnregisterRemoteSKI:input_type -> eebus.v1.RegisterSKIRequest
+	50, // 79: eebus.v1.DeviceService.ListPairedDevices:input_type -> eebus.v1.Empty
+	50, // 80: eebus.v1.DeviceService.SubscribeDeviceEvents:input_type -> eebus.v1.Empty
+	51, // 81: eebus.v1.DeviceService.SubscribeDeviceState:input_type -> eebus.v1.DeviceRequest
+	51, // 82: eebus.v1.DeviceService.GetDeviceStructureDump:input_type -> eebus.v1.DeviceRequest
+	13, // 83: eebus.v1.DeviceService.GetStatus:output_type -> eebus.v1.ServiceStatus
+	14, // 84: eebus.v1.DeviceService.GetServerInfo:output_type -> eebus.v1.ServerInfo
+	15, // 85: eebus.v1.DeviceService.GetDeviceStatus:output_type -> eebus.v1.DeviceStatus
+	12, // 86: eebus.v1.DeviceService.GetDeviceCapabilities:output_type -> eebus.v1.DeviceCapabilities
+	30, // 87: eebus.v1.DeviceService.GetDeviceSnapshot:output_type -> eebus.v1.DeviceSnapshot
+	20, // 88: eebus.v1.DeviceService.GetDeviceDiagnostics:output_type -> eebus.v1.DeviceOperationalDiagnostics
+	23, // 89: eebus.v1.DeviceService.ListDiscoveredDevices:output_type -> eebus.v1.ListDevicesResponse
+	50, // 90: eebus.v1.DeviceService.RegisterRemoteSKI:output_type -> eebus.v1.Empty
+	50, // 91: eebus.v1.DeviceService.UnregisterRemoteSKI:output_type -> eebus.v1.Empty
+	26, // 92: eebus.v1.DeviceService.ListPairedDevices:output_type -> eebus.v1.ListPairedDevicesResponse
+	27, // 93: eebus.v1.DeviceService.SubscribeDeviceEvents:output_type -> eebus.v1.DeviceEvent
+	28, // 94: eebus.v1.DeviceService.SubscribeDeviceState:output_type -> eebus.v1.DeviceStateEvent
+	21, // 95: eebus.v1.DeviceService.GetDeviceStructureDump:output_type -> eebus.v1.DeviceStructureDump
+	83, // [83:96] is the sub-list for method output_type
+	70, // [70:83] is the sub-list for method input_type
+	70, // [70:70] is the sub-list for extension type_name
+	70, // [70:70] is the sub-list for extension extendee
+	0,  // [0:70] is the sub-list for field type_name
 }
 
 func init() { file_eebus_v1_device_service_proto_init() }

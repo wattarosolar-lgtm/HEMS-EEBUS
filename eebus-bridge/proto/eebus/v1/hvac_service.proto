@@ -8,11 +8,30 @@ import "eebus/v1/common.proto";
 
 // HVACService exposes the room-heating Configuration use cases validated
 // against the Vaillant VR940 HVACRoom entity.
+//
+// A device may have several heating zones, each with its own HVACRoom entity.
+// A zone is addressed by zone_id, the entity's SPINE address joined with dots
+// (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+// exactly one zone; with several zones they fail with FAILED_PRECONDITION
+// rather than guess. An unknown zone_id is NOT_FOUND.
 service HVACService {
+  // GetRoomHeating returns the device's first zone in address order. Use
+  // ListRoomHeatingZones for devices with several zones.
   rpc GetRoomHeating(DeviceRequest) returns (RoomHeatingState);
+  // ListRoomHeatingZones returns every readable zone in address order.
+  rpc ListRoomHeatingZones(DeviceRequest) returns (RoomHeatingZoneList);
   rpc SetRoomHeatingTemperature(SetRoomHeatingTemperatureRequest) returns (Empty);
   rpc SetRoomHeatingMode(SetRoomHeatingModeRequest) returns (Empty);
   rpc SubscribeRoomHeatingEvents(DeviceRequest) returns (stream RoomHeatingEvent);
+}
+
+message RoomHeatingZone {
+  string zone_id = 1;
+  RoomHeatingState state = 2;
+}
+
+message RoomHeatingZoneList {
+  repeated RoomHeatingZone zones = 1;
 }
 
 message RoomHeatingState {
@@ -42,11 +61,15 @@ message RoomHeatingSystemFunction {
 message SetRoomHeatingTemperatureRequest {
   string ski = 1;
   double value_celsius = 2;
+  // Zone to write; may be omitted only for a device with exactly one zone.
+  optional string zone_id = 3;
 }
 
 message SetRoomHeatingModeRequest {
   string ski = 1;
   string mode = 2;
+  // Zone to write; may be omitted only for a device with exactly one zone.
+  optional string zone_id = 3;
 }
 
 enum RoomHeatingEventType {
@@ -61,4 +84,6 @@ message RoomHeatingEvent {
   string ski = 1;
   RoomHeatingEventType event_type = 2;
   RoomHeatingState state = 3;
+  // Zone the event belongs to, if known; state then describes this zone.
+  optional string zone_id = 4;
 }

@@ -81,7 +81,7 @@ func (w *RoomHeatingSystemFunctionMonitoring) HandleEvent(
 		return
 	}
 	if w.bus != nil {
-		w.bus.Publish(eebus.Event{SKI: ski, Type: eventType})
+		w.bus.Publish(eebus.Event{SKI: ski, Type: eventType, ZoneID: eebus.ZoneID(entity)})
 	}
 }
 
@@ -90,6 +90,14 @@ func (w *RoomHeatingSystemFunctionMonitoring) CompatibleEntity(ski string) eebus
 		return eebus.EntityResolution{}
 	}
 	return compatibleEntity(w.uc.RemoteEntitiesScenarios(), ski)
+}
+
+// CompatibleEntities lists the device's room entities, one per heating zone.
+func (w *RoomHeatingSystemFunctionMonitoring) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if w.uc == nil {
+		return nil
+	}
+	return compatibleEntities(w.uc.RemoteEntitiesScenarios(), ski)
 }
 
 func (w *RoomHeatingSystemFunctionMonitoring) State(
@@ -114,11 +122,13 @@ func (w *RoomHeatingSystemFunctionMonitoring) State(
 
 type roomHeatingSystemFunctionReader interface {
 	CompatibleEntity(string) eebus.EntityResolution
+	CompatibleEntities(string) []spineapi.EntityRemoteInterface
 	State(spineapi.EntityRemoteInterface) (RoomHeatingSystemFunctionState, error)
 }
 
 type roomHeatingSystemFunctionWriter interface {
 	CompatibleEntity(string) eebus.EntityResolution
+	CompatibleEntities(string) []spineapi.EntityRemoteInterface
 	State(spineapi.EntityRemoteInterface) (RoomHeatingSystemFunctionState, error)
 	WriteOperationMode(context.Context, spineapi.EntityRemoteInterface, string) error
 }
@@ -144,6 +154,15 @@ func (a *RoomHeatingSystemFunctionAdapter) CompatibleEntity(ski string) eebus.En
 		return eebus.EntityResolution{}
 	}
 	return a.monitoring.CompatibleEntity(ski)
+}
+
+// CompatibleEntities lists the device's monitored room entities, one per
+// heating zone.
+func (a *RoomHeatingSystemFunctionAdapter) CompatibleEntities(ski string) []spineapi.EntityRemoteInterface {
+	if a == nil || a.monitoring == nil {
+		return nil
+	}
+	return a.monitoring.CompatibleEntities(ski)
 }
 
 func (a *RoomHeatingSystemFunctionAdapter) State(
@@ -199,5 +218,7 @@ func (a *RoomHeatingSystemFunctionAdapter) configurationEntity(
 	if device == nil {
 		return nil
 	}
-	return a.configuration.CompatibleEntity(device.Ski()).Entity
+	// The configuration entity must belong to the same zone as the monitored
+	// one, or a mode write could reach another zone.
+	return sameZoneEntity(a.configuration.CompatibleEntities(device.Ski()), entity)
 }

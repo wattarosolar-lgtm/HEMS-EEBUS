@@ -29,6 +29,12 @@ if _version_not_supported:
 class HVACServiceStub:
     """HVACService exposes the room-heating Configuration use cases validated
     against the Vaillant VR940 HVACRoom entity.
+
+    A device may have several heating zones, each with its own HVACRoom entity.
+    A zone is addressed by zone_id, the entity's SPINE address joined with dots
+    (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+    exactly one zone; with several zones they fail with FAILED_PRECONDITION
+    rather than guess. An unknown zone_id is NOT_FOUND.
     """
 
     def __init__(self, channel):
@@ -41,6 +47,11 @@ class HVACServiceStub:
                 '/eebus.v1.HVACService/GetRoomHeating',
                 request_serializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
                 response_deserializer=eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingState.FromString,
+                _registered_method=True)
+        self.ListRoomHeatingZones = channel.unary_unary(
+                '/eebus.v1.HVACService/ListRoomHeatingZones',
+                request_serializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
+                response_deserializer=eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingZoneList.FromString,
                 _registered_method=True)
         self.SetRoomHeatingTemperature = channel.unary_unary(
                 '/eebus.v1.HVACService/SetRoomHeatingTemperature',
@@ -62,10 +73,25 @@ class HVACServiceStub:
 class HVACServiceServicer:
     """HVACService exposes the room-heating Configuration use cases validated
     against the Vaillant VR940 HVACRoom entity.
+
+    A device may have several heating zones, each with its own HVACRoom entity.
+    A zone is addressed by zone_id, the entity's SPINE address joined with dots
+    (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+    exactly one zone; with several zones they fail with FAILED_PRECONDITION
+    rather than guess. An unknown zone_id is NOT_FOUND.
     """
 
     def GetRoomHeating(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """GetRoomHeating returns the device's first zone in address order. Use
+        ListRoomHeatingZones for devices with several zones.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListRoomHeatingZones(self, request, context):
+        """ListRoomHeatingZones returns every readable zone in address order.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -96,6 +122,11 @@ def add_HVACServiceServicer_to_server(servicer, server):
                     request_deserializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.FromString,
                     response_serializer=eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingState.SerializeToString,
             ),
+            'ListRoomHeatingZones': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListRoomHeatingZones,
+                    request_deserializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.FromString,
+                    response_serializer=eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingZoneList.SerializeToString,
+            ),
             'SetRoomHeatingTemperature': grpc.unary_unary_rpc_method_handler(
                     servicer.SetRoomHeatingTemperature,
                     request_deserializer=eebus_dot_v1_dot_hvac__service__pb2.SetRoomHeatingTemperatureRequest.FromString,
@@ -122,6 +153,12 @@ def add_HVACServiceServicer_to_server(servicer, server):
 class HVACService:
     """HVACService exposes the room-heating Configuration use cases validated
     against the Vaillant VR940 HVACRoom entity.
+
+    A device may have several heating zones, each with its own HVACRoom entity.
+    A zone is addressed by zone_id, the entity's SPINE address joined with dots
+    (e.g. "5.1.1"). Writes without zone_id are accepted only for a device with
+    exactly one zone; with several zones they fail with FAILED_PRECONDITION
+    rather than guess. An unknown zone_id is NOT_FOUND.
     """
 
     @staticmethod
@@ -141,6 +178,33 @@ class HVACService:
             '/eebus.v1.HVACService/GetRoomHeating',
             eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
             eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingState.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListRoomHeatingZones(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/eebus.v1.HVACService/ListRoomHeatingZones',
+            eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
+            eebus_dot_v1_dot_hvac__service__pb2.RoomHeatingZoneList.FromString,
             options,
             channel_credentials,
             insecure,

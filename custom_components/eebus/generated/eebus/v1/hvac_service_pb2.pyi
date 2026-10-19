@@ -21,6 +21,20 @@ ROOM_HEATING_EVENT_CURRENT_TEMPERATURE_UPDATED: RoomHeatingEventType
 ROOM_HEATING_EVENT_SETPOINT_UPDATED: RoomHeatingEventType
 ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED: RoomHeatingEventType
 
+class RoomHeatingZone(_message.Message):
+    __slots__ = ("zone_id", "state")
+    ZONE_ID_FIELD_NUMBER: _ClassVar[int]
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    zone_id: str
+    state: RoomHeatingState
+    def __init__(self, zone_id: _Optional[str] = ..., state: _Optional[_Union[RoomHeatingState, _Mapping]] = ...) -> None: ...
+
+class RoomHeatingZoneList(_message.Message):
+    __slots__ = ("zones",)
+    ZONES_FIELD_NUMBER: _ClassVar[int]
+    zones: _containers.RepeatedCompositeFieldContainer[RoomHeatingZone]
+    def __init__(self, zones: _Optional[_Iterable[_Union[RoomHeatingZone, _Mapping]]] = ...) -> None: ...
+
 class RoomHeatingState(_message.Message):
     __slots__ = ("current_temperature_celsius", "setpoint", "system_function", "zone_label")
     CURRENT_TEMPERATURE_CELSIUS_FIELD_NUMBER: _ClassVar[int]
@@ -58,27 +72,33 @@ class RoomHeatingSystemFunction(_message.Message):
     def __init__(self, operation_mode: _Optional[str] = ..., available_modes: _Optional[_Iterable[str]] = ..., mode_writable: _Optional[bool] = ...) -> None: ...
 
 class SetRoomHeatingTemperatureRequest(_message.Message):
-    __slots__ = ("ski", "value_celsius")
+    __slots__ = ("ski", "value_celsius", "zone_id")
     SKI_FIELD_NUMBER: _ClassVar[int]
     VALUE_CELSIUS_FIELD_NUMBER: _ClassVar[int]
+    ZONE_ID_FIELD_NUMBER: _ClassVar[int]
     ski: str
     value_celsius: float
-    def __init__(self, ski: _Optional[str] = ..., value_celsius: _Optional[float] = ...) -> None: ...
+    zone_id: str
+    def __init__(self, ski: _Optional[str] = ..., value_celsius: _Optional[float] = ..., zone_id: _Optional[str] = ...) -> None: ...
 
 class SetRoomHeatingModeRequest(_message.Message):
-    __slots__ = ("ski", "mode")
+    __slots__ = ("ski", "mode", "zone_id")
     SKI_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
+    ZONE_ID_FIELD_NUMBER: _ClassVar[int]
     ski: str
     mode: str
-    def __init__(self, ski: _Optional[str] = ..., mode: _Optional[str] = ...) -> None: ...
+    zone_id: str
+    def __init__(self, ski: _Optional[str] = ..., mode: _Optional[str] = ..., zone_id: _Optional[str] = ...) -> None: ...
 
 class RoomHeatingEvent(_message.Message):
-    __slots__ = ("ski", "event_type", "state")
+    __slots__ = ("ski", "event_type", "state", "zone_id")
     SKI_FIELD_NUMBER: _ClassVar[int]
     EVENT_TYPE_FIELD_NUMBER: _ClassVar[int]
     STATE_FIELD_NUMBER: _ClassVar[int]
+    ZONE_ID_FIELD_NUMBER: _ClassVar[int]
     ski: str
     event_type: RoomHeatingEventType
     state: RoomHeatingState
-    def __init__(self, ski: _Optional[str] = ..., event_type: _Optional[_Union[RoomHeatingEventType, str]] = ..., state: _Optional[_Union[RoomHeatingState, _Mapping]] = ...) -> None: ...
+    zone_id: str
+    def __init__(self, ski: _Optional[str] = ..., event_type: _Optional[_Union[RoomHeatingEventType, str]] = ..., state: _Optional[_Union[RoomHeatingState, _Mapping]] = ..., zone_id: _Optional[str] = ...) -> None: ...

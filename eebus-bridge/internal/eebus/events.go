@@ -64,8 +64,11 @@ const (
 
 // Event represents an internal event from eebus-go callbacks.
 type Event struct {
-	SKI        string
-	Type       EventType
+	SKI  string
+	Type EventType
+	// ZoneID names the heating zone an event belongs to (see ZoneID), empty for
+	// device-wide events.
+	ZoneID     string
 	Revision   uint64
 	OccurredAt time.Time
 	Dropped    uint64

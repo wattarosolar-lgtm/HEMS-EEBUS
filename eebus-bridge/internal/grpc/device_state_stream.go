@@ -367,7 +367,11 @@ func roomHeatingEvent(event eebus.Event) *pb.RoomHeatingEvent {
 	case eebus.EventTypeRoomHeatingSystemFunctionUpdated:
 		eventType = pb.RoomHeatingEventType_ROOM_HEATING_EVENT_SYSTEM_FUNCTION_UPDATED
 	}
-	return &pb.RoomHeatingEvent{Ski: event.SKI, EventType: eventType}
+	heating := &pb.RoomHeatingEvent{Ski: event.SKI, EventType: eventType}
+	if event.ZoneID != "" {
+		heating.ZoneId = new(event.ZoneID)
+	}
+	return heating
 }
 
 func ohpcfEvent(event eebus.Event) *pb.OHPCFEvent {

@@ -652,29 +652,70 @@ func TestRegistryZoneLabelIgnoresEmptyAndReportsChange(t *testing.T) {
 	registry := eebus.NewDeviceRegistry()
 	ski := "0011223344556677889900112233445566778899"
 
-	if registry.UpsertZoneLabel(ski, "") {
+	if registry.UpsertZoneLabel(ski, "5.1", "") {
 		t.Fatal("empty label reported a change")
 	}
-	if label := registry.ZoneLabel(ski); label != "" {
+	if label := registry.ZoneLabel(ski, ""); label != "" {
 		t.Fatalf("empty label stored %q", label)
 	}
-	if !registry.UpsertZoneLabel(ski, "Zone 1") {
+	if !registry.UpsertZoneLabel(ski, "5.1", "Zone 1") {
 		t.Fatal("first label did not report a change")
 	}
-	if registry.UpsertZoneLabel(ski, "Zone 1") {
+	if registry.UpsertZoneLabel(ski, "5.1", "Zone 1") {
 		t.Fatal("unchanged label reported a change")
 	}
 	// A later empty answer from a sibling entity must not clear a good label.
-	if registry.UpsertZoneLabel(ski, "") {
+	if registry.UpsertZoneLabel(ski, "5.1", "") {
 		t.Fatal("empty label reported a change after a good one")
 	}
-	if label := registry.ZoneLabel(ski); label != "Zone 1" {
+	if label := registry.ZoneLabel(ski, ""); label != "Zone 1" {
 		t.Fatalf("zone label = %q, want Zone 1", label)
 	}
-	if !registry.UpsertZoneLabel(ski, "Ground floor") {
+	if !registry.UpsertZoneLabel(ski, "5.1", "Ground floor") {
 		t.Fatal("renamed label did not report a change")
 	}
-	if label := registry.ZoneLabel(ski); label != "Ground floor" {
+	if label := registry.ZoneLabel(ski, "5.1.1"); label != "Ground floor" {
 		t.Fatalf("renamed zone label = %q", label)
+	}
+}
+
+// Every HeatingZone keeps its own label, and a room entity gets the label of
+// the zone it lies below. Reading the second zone must not rename the first.
+func TestRegistryZoneLabelsArePerZone(t *testing.T) {
+	registry := eebus.NewDeviceRegistry()
+	ski := "0011223344556677889900112233445566778899"
+	registry.UpsertZoneLabel(ski, "5.1", "Zone 1")
+	registry.UpsertZoneLabel(ski, "6.1", "Zone 2")
+
+	for _, test := range []struct{ entity, want string }{
+		{entity: "5.1.1", want: "Zone 1"},
+		{entity: "6.1.1", want: "Zone 2"},
+		{entity: "5.1", want: "Zone 1"},
+		{entity: "7.1.1", want: ""},
+		// With two zones the device has no single label.
+		{entity: "", want: ""},
+	} {
+		if label := registry.ZoneLabel(ski, test.entity); label != test.want {
+			t.Errorf("ZoneLabel(%q) = %q, want %q", test.entity, label, test.want)
+		}
+	}
+
+	// Labels handed out with device info are copies.
+	info, _ := registry.GetDevice(ski)
+	info.ZoneLabels["5.1"] = "changed"
+	if label := registry.ZoneLabel(ski, "5.1.1"); label != "Zone 1" {
+		t.Fatalf("device info aliases the registry: %q", label)
+	}
+}
+
+// Nested zone entities would make the owner of a room ambiguous: no guess.
+func TestRegistryZoneLabelIsEmptyWhenAmbiguous(t *testing.T) {
+	registry := eebus.NewDeviceRegistry()
+	ski := "0011223344556677889900112233445566778899"
+	registry.UpsertZoneLabel(ski, "5", "Circuit")
+	registry.UpsertZoneLabel(ski, "5.1", "Zone 1")
+
+	if label := registry.ZoneLabel(ski, "5.1.1"); label != "" {
+		t.Fatalf("ambiguous zone label = %q, want none", label)
 	}
 }

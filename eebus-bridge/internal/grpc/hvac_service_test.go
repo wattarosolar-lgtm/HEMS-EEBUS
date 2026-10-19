@@ -184,7 +184,7 @@ func TestHVACServiceMapsOutOfRangeToInvalidArgument(t *testing.T) {
 func TestHVACServiceServesZoneLabelOnSnapshotAndStream(t *testing.T) {
 	entity := mocks.NewEntityRemoteInterface(t)
 	registry := eebus.NewDeviceRegistry()
-	registry.UpsertZoneLabel(testValidSKI, "Zone 1")
+	registry.UpsertZoneLabel(testValidSKI, "5.1", "Zone 1")
 	temp := &fakeRoomHeatingTemp{
 		entity: entity,
 		state:  usecases.RoomHeatingSetpoint{Value: 21, Minimum: 5, Maximum: 30, Step: 0.5, Writable: true},
@@ -213,7 +213,7 @@ func TestHVACServiceServesZoneLabelOnSnapshotAndStream(t *testing.T) {
 func TestHVACServiceZoneLabelDoesNotMakeUnreadableAggregateAvailable(t *testing.T) {
 	entity := mocks.NewEntityRemoteInterface(t)
 	registry := eebus.NewDeviceRegistry()
-	registry.UpsertZoneLabel(testValidSKI, "Zone 1")
+	registry.UpsertZoneLabel(testValidSKI, "5.1", "Zone 1")
 	temp := &fakeRoomHeatingTemp{entity: entity, err: usecases.ErrRoomHeatingDataUnavailable}
 	svc := NewHVACService(temp, nil, failingTemperatureReader{err: usecases.ErrRoomHeatingDataUnavailable}, nil, registry)
 

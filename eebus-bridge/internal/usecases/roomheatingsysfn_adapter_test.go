@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	ucmocks "github.com/enbility/eebus-go/usecases/mocks"
 	spineapi "github.com/enbility/spine-go/api"
 	spinemocks "github.com/enbility/spine-go/mocks"
+	"github.com/enbility/spine-go/model"
 	"github.com/volschin/eebus-bridge/internal/eebus"
 )
 
@@ -102,6 +104,13 @@ func (f *fakeRoomHeatingSystemFunctionReader) CompatibleEntity(string) eebus.Ent
 	return eebus.EntityResolution{Entity: f.entity, DeviceCount: 1}
 }
 
+func (f *fakeRoomHeatingSystemFunctionReader) CompatibleEntities(string) []spineapi.EntityRemoteInterface {
+	if f.entity == nil {
+		return nil
+	}
+	return []spineapi.EntityRemoteInterface{f.entity}
+}
+
 func (f *fakeRoomHeatingSystemFunctionReader) State(
 	spineapi.EntityRemoteInterface,
 ) (RoomHeatingSystemFunctionState, error) {
@@ -110,6 +119,7 @@ func (f *fakeRoomHeatingSystemFunctionReader) State(
 
 type fakeRoomHeatingSystemFunctionWriter struct {
 	entity      spineapi.EntityRemoteInterface
+	entities    []spineapi.EntityRemoteInterface
 	state       RoomHeatingSystemFunctionState
 	stateEntity spineapi.EntityRemoteInterface
 	writeEntity spineapi.EntityRemoteInterface
@@ -123,6 +133,16 @@ func (f *fakeRoomHeatingSystemFunctionWriter) CompatibleEntity(string) eebus.Ent
 		return eebus.EntityResolution{}
 	}
 	return eebus.EntityResolution{Entity: f.entity, DeviceCount: 1}
+}
+
+func (f *fakeRoomHeatingSystemFunctionWriter) CompatibleEntities(string) []spineapi.EntityRemoteInterface {
+	if f.entities != nil {
+		return f.entities
+	}
+	if f.entity == nil {
+		return nil
+	}
+	return []spineapi.EntityRemoteInterface{f.entity}
 }
 
 func (f *fakeRoomHeatingSystemFunctionWriter) State(
@@ -338,4 +358,77 @@ func TestRoomHeatingSystemFunctionMonitoringOptionalPaths(t *testing.T) {
 	}
 	wrapper.HandleEvent("ab:cd", nil, nil, mamrhsf.DataUpdateOperationMode)
 	wrapper.HandleEvent("ab:cd", nil, nil, eebusapi.EventType("unknown"))
+}
+
+// With two zones the mode write goes to the configuration entity of the zone
+// that was read, never to the device's first zone.
+func TestRoomHeatingSystemFunctionAdapterWritesTheSameZone(t *testing.T) {
+	device := spinemocks.NewDeviceRemoteInterface(t)
+	device.EXPECT().Ski().Return("ab:cd").Maybe()
+	zoneEntity := func(address ...model.AddressEntityType) *spinemocks.EntityRemoteInterface {
+		entity := spinemocks.NewEntityRemoteInterface(t)
+		entity.EXPECT().Device().Return(device).Maybe()
+		entity.EXPECT().Address().Return(&model.EntityAddressType{Entity: address}).Maybe()
+		return entity
+	}
+	monitoredZone2 := zoneEntity(6, 1, 1)
+	configuredZone1 := zoneEntity(5, 1, 1)
+	configuredZone2 := zoneEntity(6, 1, 1)
+	reader := &fakeRoomHeatingSystemFunctionReader{
+		entity: monitoredZone2,
+		state:  RoomHeatingSystemFunctionState{OperationMode: "auto", AvailableModes: []string{"auto", "off"}},
+	}
+	writer := &fakeRoomHeatingSystemFunctionWriter{
+		entities: []spineapi.EntityRemoteInterface{configuredZone1, configuredZone2},
+		state:    RoomHeatingSystemFunctionState{ModeWritable: true},
+	}
+	adapter := NewRoomHeatingSystemFunctionAdapter(reader, writer)
+
+	if err := adapter.WriteOperationMode(context.Background(), monitoredZone2, "off"); err != nil {
+		t.Fatalf("WriteOperationMode() error = %v", err)
+	}
+	if writer.writeEntity != configuredZone2 {
+		t.Fatal("mode write did not reach the configuration entity of zone 6.1.1")
+	}
+
+	// A zone without a configuration entity is not writable.
+	writer.entities = []spineapi.EntityRemoteInterface{configuredZone1, zoneEntity(7, 1, 1)}
+	if err := adapter.WriteOperationMode(context.Background(), monitoredZone2, "off"); !errors.Is(err, ErrRoomHeatingSysFnNotWritable) {
+		t.Fatalf("WriteOperationMode() without zone entity error = %v, want ErrRoomHeatingSysFnNotWritable", err)
+	}
+}
+
+// Eco is passed on exactly when the device offers it; the bridge never adds it.
+func TestRoomHeatingSystemFunctionMonitoringPassesEcoOnlyWhenOffered(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		offered []ucapi.HvacOperationModeType
+		want    []string
+	}{
+		{
+			name:    "offered",
+			offered: []ucapi.HvacOperationModeType{ucapi.HvacOperationModeTypeAuto, ucapi.HvacOperationModeTypeEco, ucapi.HvacOperationModeTypeOff},
+			want:    []string{"auto", "eco", "off"},
+		},
+		{
+			name:    "not offered",
+			offered: []ucapi.HvacOperationModeType{ucapi.HvacOperationModeTypeAuto, ucapi.HvacOperationModeTypeOn, ucapi.HvacOperationModeTypeOff},
+			want:    []string{"auto", "on", "off"},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			uc := ucmocks.NewMaMRHSFInterface(t)
+			entity := spinemocks.NewEntityRemoteInterface(t)
+			uc.EXPECT().OperationModes(entity).Return(test.offered, nil)
+			uc.EXPECT().CurrentOperationMode(entity).Return(ucapi.HvacOperationModeTypeAuto, nil)
+
+			state, err := (&RoomHeatingSystemFunctionMonitoring{uc: uc}).State(entity)
+			if err != nil {
+				t.Fatalf("State() error = %v", err)
+			}
+			if !slices.Equal(state.AvailableModes, test.want) {
+				t.Fatalf("available modes = %v, want %v", state.AvailableModes, test.want)
+			}
+		})
+	}
 }

@@ -168,6 +168,7 @@ func (a *DeviceSnapshotAssembler) Build(ski string, revision uint64) (*pb.Device
 		heating := &pb.RoomHeatingEvent{Ski: ski, EventType: pb.RoomHeatingEventType_ROOM_HEATING_EVENT_SETPOINT_UPDATED}
 		a.hvac.AttachRoomHeatingPayload(heating, ski)
 		result.RoomHeating = heating.GetState()
+		result.RoomHeatingZones = a.hvac.RoomHeatingZones(ski)
 		result.RoomHeatingState = valueState(eebus.CapabilityRoomHeating, result.RoomHeating != nil, true)
 	} else {
 		result.RoomHeatingState = valueState(eebus.CapabilityRoomHeating, false, false)
