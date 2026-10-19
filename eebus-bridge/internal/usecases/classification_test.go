@@ -426,6 +426,31 @@ func TestDeviceClassifierStoresZoneLabelFromHeatingZoneEntity(t *testing.T) {
 	}
 }
 
+// A label without an entity belongs to no zone. Stored, it would make the
+// device-wide label of a single-zone device ambiguous.
+func TestDeviceClassifierDropsZoneLabelWithoutEntity(t *testing.T) {
+	registry := eebus.NewDeviceRegistry()
+	classifier := NewDeviceClassifier(registry, nil)
+	classifier.localEntity = mocks.NewEntityLocalInterface(t)
+	device := mocks.NewDeviceRemoteInterface(t)
+	zone := mocks.NewEntityRemoteInterface(t)
+	zone.On("EntityType").Return(model.EntityTypeTypeHeatingZone).Maybe()
+	zone.On("Address").Return(&model.EntityAddressType{Entity: []model.AddressEntityType{5, 1}}).Maybe()
+
+	classifier.HandleEvent(spineapi.EventPayload{
+		Ski: testValidUsecaseSKI, Device: device, Entity: zone,
+		Data: &model.DeviceClassificationUserDataType{UserLabel: zoneLabelValue("Zone 1")},
+	})
+	classifier.HandleEvent(spineapi.EventPayload{
+		Ski: testValidUsecaseSKI, Device: device,
+		Data: &model.DeviceClassificationUserDataType{UserLabel: zoneLabelValue("stray")},
+	})
+
+	if label := registry.ZoneLabel(testValidUsecaseSKI, ""); label != "Zone 1" {
+		t.Fatalf("zone label = %q, want the zone's own label", label)
+	}
+}
+
 // The HeatingCircuit and HVACRoom entities advertise deviceClassificationUserData
 // and answer it empty on real hardware. Neither may store or clear a label.
 func TestDeviceClassifierIgnoresZoneLabelFromSiblingEntities(t *testing.T) {

@@ -82,8 +82,10 @@ func (c *DeviceClassifier) HandleEvent(payload spineapi.EventPayload) {
 	if data, ok := payload.Data.(*model.DeviceClassificationUserDataType); ok {
 		// Only the HeatingZone entity populates this function; siblings answer
 		// it empty. storeZoneLabel ignores empty labels, so an unsolicited
-		// response from another entity cannot clear a good value.
-		if payload.Entity == nil || isHeatingZone(payload.Entity) {
+		// response from another entity cannot clear a good value. A label
+		// without an entity belongs to no zone and would make the device-wide
+		// label ambiguous, so it is dropped.
+		if payload.Entity != nil && isHeatingZone(payload.Entity) {
 			c.storeZoneLabel(payload.Ski, device, payload.Entity, userLabel(data))
 		}
 		return

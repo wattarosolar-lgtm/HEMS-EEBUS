@@ -18,13 +18,18 @@ import (
 // zonedRoomHeatingTemp is a CRHT source that lists one entity per zone and
 // validates writes against each zone's own limits, like the CRHT facade.
 type zonedRoomHeatingTemp struct {
-	entities    []spineapi.EntityRemoteInterface
+	entities []spineapi.EntityRemoteInterface
+	// single, when set, answers the single-entity lookup regardless of entities.
+	single      *eebus.EntityResolution
 	states      map[spineapi.EntityRemoteInterface]usecases.RoomHeatingSetpoint
 	writeEntity spineapi.EntityRemoteInterface
 	writeValue  float64
 }
 
 func (f *zonedRoomHeatingTemp) CompatibleEntity(string) eebus.EntityResolution {
+	if f.single != nil {
+		return *f.single
+	}
 	if len(f.entities) == 0 {
 		return eebus.EntityResolution{}
 	}
@@ -54,13 +59,18 @@ func (f *zonedRoomHeatingTemp) Write(_ context.Context, entity spineapi.EntityRe
 }
 
 type zonedRoomSysFn struct {
-	entities    []spineapi.EntityRemoteInterface
+	entities []spineapi.EntityRemoteInterface
+	// single, when set, answers the single-entity lookup regardless of entities.
+	single      *eebus.EntityResolution
 	states      map[spineapi.EntityRemoteInterface]usecases.RoomHeatingSystemFunctionState
 	writeEntity spineapi.EntityRemoteInterface
 	writeMode   string
 }
 
 func (f *zonedRoomSysFn) CompatibleEntity(string) eebus.EntityResolution {
+	if f.single != nil {
+		return *f.single
+	}
 	if len(f.entities) == 0 {
 		return eebus.EntityResolution{}
 	}
@@ -260,6 +270,32 @@ func TestHVACServiceWritesExactlyTheNamedZone(t *testing.T) {
 	_, err = zones.svc.SetRoomHeatingMode(ctx, &pb.SetRoomHeatingModeRequest{Ski: testValidSKI, Mode: "on", ZoneId: new("2.1.1")})
 	if err != nil || zones.sysfn.writeEntity != zones.zone2 || zones.sysfn.writeMode != "on" {
 		t.Fatalf("mode write to 2.1.1: %v", err)
+	}
+}
+
+// Before any zone is negotiated, a write naming a zone must not fall back to
+// the single-entity lookup, which knows nothing about zones.
+func TestHVACServiceNamedZoneWithoutZoneListIsNotFound(t *testing.T) {
+	zone := roomEntity(t, testValidSKI, 5, 1, 1)
+	temp := &zonedRoomHeatingTemp{
+		single: &eebus.EntityResolution{Entity: zone, DeviceCount: 1},
+		states: map[spineapi.EntityRemoteInterface]usecases.RoomHeatingSetpoint{
+			zone: {Value: 21, Minimum: 5, Maximum: 30, Step: 0.5, Writable: true},
+		},
+	}
+	sysfn := &zonedRoomSysFn{single: &eebus.EntityResolution{Entity: zone, DeviceCount: 1}}
+	svc := NewHVACService(temp, sysfn, nil, nil)
+	ctx := context.Background()
+
+	_, err := svc.SetRoomHeatingTemperature(ctx, &pb.SetRoomHeatingTemperatureRequest{
+		Ski: testValidSKI, ValueCelsius: 22, ZoneId: new("6.1.1"),
+	})
+	if status.Code(err) != codes.NotFound || temp.writeEntity != nil {
+		t.Fatalf("setpoint write to 6.1.1 without zone list: err=%v, reached an entity=%v", err, temp.writeEntity != nil)
+	}
+	_, err = svc.SetRoomHeatingMode(ctx, &pb.SetRoomHeatingModeRequest{Ski: testValidSKI, Mode: "off", ZoneId: new("6.1.1")})
+	if status.Code(err) != codes.NotFound || sysfn.writeEntity != nil {
+		t.Fatalf("mode write to 6.1.1 without zone list: err=%v, reached an entity=%v", err, sysfn.writeEntity != nil)
 	}
 }
 

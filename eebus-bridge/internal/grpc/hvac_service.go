@@ -355,6 +355,11 @@ func (s *HVACService) zoneWriteEntity(
 	}
 	entities := lister.CompatibleEntities(ski)
 	if len(entities) == 0 {
+		// A named zone is only ever looked up in the zone list; the single-entity
+		// path could resolve an entity of another zone.
+		if zoneID != nil && *zoneID != "" {
+			return nil, status.Errorf(codes.NotFound, "unknown heating zone %q", *zoneID)
+		}
 		return resolveCompatibleEntity(ski, "HVACRoom", eebus.CapabilityRoomHeating, s.registry, resolve)
 	}
 	if zoneID == nil || *zoneID == "" {

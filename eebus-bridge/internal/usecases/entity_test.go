@@ -192,8 +192,13 @@ func TestSameZoneEntityMatchesByAddress(t *testing.T) {
 	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1, zone2}, reconnectedZone2); got != zone2 {
 		t.Fatal("sameZoneEntity did not match the entity at the same address")
 	}
-	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1}, reconnectedZone2); got != zone1 {
-		t.Fatal("a single candidate is the device's only zone")
+	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone2}, reconnectedZone2); got != zone2 {
+		t.Fatal("sameZoneEntity did not match the only candidate at the same address")
+	}
+	// Another use case may have negotiated only zone 1 so far: its single
+	// entity must not stand in for zone 2.
+	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1}, reconnectedZone2); got != nil {
+		t.Fatal("sameZoneEntity picked the only candidate although it belongs to another zone")
 	}
 	if got := sameZoneEntity([]spineapi.EntityRemoteInterface{zone1, zoneScenario(t, device, 7).Entity}, zone2); got != nil {
 		t.Fatal("sameZoneEntity picked an entity of another zone")

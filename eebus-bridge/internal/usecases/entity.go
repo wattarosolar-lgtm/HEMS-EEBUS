@@ -115,18 +115,20 @@ func compatibleEntities(scenarios []eebusapi.RemoteEntityScenarios, ski string) 
 // sameZoneEntity picks the candidate in the same zone as entity, i.e. at the
 // same address. Use cases negotiate their entities independently, so after a
 // reconnect the objects differ while the addresses stay the same. A single
-// candidate is the device's only zone and needs no address comparison.
+// candidate is compared as well: while one use case has negotiated only some
+// zones, it may be another zone's entity, and a write must never reach it.
 func sameZoneEntity(
 	candidates []spineapi.EntityRemoteInterface,
 	entity spineapi.EntityRemoteInterface,
 ) spineapi.EntityRemoteInterface {
-	switch len(candidates) {
-	case 0:
+	if len(candidates) == 0 {
 		return nil
-	case 1:
-		return candidates[0]
 	}
 	zone := eebus.ZoneID(entity)
+	if zone == "" {
+		// Without an address the zone is unknown: fail closed.
+		return nil
+	}
 	for _, candidate := range candidates {
 		if eebus.ZoneID(candidate) == zone {
 			return candidate

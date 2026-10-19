@@ -117,6 +117,15 @@ func (f *fakeRoomHeatingSystemFunctionReader) State(
 	return f.state, f.stateErr
 }
 
+// sameRoom places entities at one HVACRoom address. On real devices MRHSF and
+// CRHSF are served by the same room entity, so a mode write finds its
+// configuration entity by address.
+func sameRoom(entities ...*spinemocks.EntityRemoteInterface) {
+	for _, entity := range entities {
+		entity.EXPECT().Address().Return(&model.EntityAddressType{Entity: []model.AddressEntityType{5, 1, 1}}).Maybe()
+	}
+}
+
 type fakeRoomHeatingSystemFunctionWriter struct {
 	entity      spineapi.EntityRemoteInterface
 	entities    []spineapi.EntityRemoteInterface
@@ -168,6 +177,7 @@ func TestRoomHeatingSystemFunctionAdapterComposesMRHSFAndCRHSFBySKI(t *testing.T
 	monitoringEntity := spinemocks.NewEntityRemoteInterface(t)
 	monitoringEntity.EXPECT().Device().Return(device).Twice()
 	configurationEntity := spinemocks.NewEntityRemoteInterface(t)
+	sameRoom(monitoringEntity, configurationEntity)
 
 	reader := &fakeRoomHeatingSystemFunctionReader{entity: monitoringEntity, state: RoomHeatingSystemFunctionState{
 		OperationMode: "auto", AvailableModes: []string{"auto", "on", "off"},
@@ -210,6 +220,7 @@ func TestRoomHeatingSystemFunctionAdapterPrevalidatesMRHSFModes(t *testing.T) {
 	monitoringEntity := spinemocks.NewEntityRemoteInterface(t)
 	monitoringEntity.EXPECT().Device().Return(device)
 	configurationEntity := spinemocks.NewEntityRemoteInterface(t)
+	sameRoom(monitoringEntity, configurationEntity)
 	reader := &fakeRoomHeatingSystemFunctionReader{state: RoomHeatingSystemFunctionState{
 		AvailableModes: []string{"auto", "on"},
 	}}
@@ -232,6 +243,7 @@ func TestRoomHeatingSystemFunctionAdapterFailsClosedWhenMRHSFStateIsUnavailable(
 	monitoringEntity := spinemocks.NewEntityRemoteInterface(t)
 	monitoringEntity.EXPECT().Device().Return(device)
 	configurationEntity := spinemocks.NewEntityRemoteInterface(t)
+	sameRoom(monitoringEntity, configurationEntity)
 	reader := &fakeRoomHeatingSystemFunctionReader{stateErr: ErrRoomHeatingSysFnDataUnavailable}
 	writer := &fakeRoomHeatingSystemFunctionWriter{entity: configurationEntity}
 
@@ -252,6 +264,7 @@ func TestRoomHeatingSystemFunctionAdapterKeepsMRHSFReadsWhenCRHSFStateIsUnavaila
 	monitoringEntity := spinemocks.NewEntityRemoteInterface(t)
 	monitoringEntity.EXPECT().Device().Return(device)
 	configurationEntity := spinemocks.NewEntityRemoteInterface(t)
+	sameRoom(monitoringEntity, configurationEntity)
 	reader := &fakeRoomHeatingSystemFunctionReader{state: RoomHeatingSystemFunctionState{OperationMode: "auto"}}
 	writer := &fakeRoomHeatingSystemFunctionWriter{
 		entity:   configurationEntity,
@@ -395,6 +408,17 @@ func TestRoomHeatingSystemFunctionAdapterWritesTheSameZone(t *testing.T) {
 	writer.entities = []spineapi.EntityRemoteInterface{configuredZone1, zoneEntity(7, 1, 1)}
 	if err := adapter.WriteOperationMode(context.Background(), monitoredZone2, "off"); !errors.Is(err, ErrRoomHeatingSysFnNotWritable) {
 		t.Fatalf("WriteOperationMode() without zone entity error = %v, want ErrRoomHeatingSysFnNotWritable", err)
+	}
+
+	// Configuration negotiated for zone 1 only: the write to zone 2 must fail
+	// instead of reaching zone 1.
+	writer.entities = []spineapi.EntityRemoteInterface{configuredZone1}
+	writer.writeEntity = nil
+	if err := adapter.WriteOperationMode(context.Background(), monitoredZone2, "off"); !errors.Is(err, ErrRoomHeatingSysFnNotWritable) {
+		t.Fatalf("WriteOperationMode() with only zone 1 configured error = %v, want ErrRoomHeatingSysFnNotWritable", err)
+	}
+	if writer.writeEntity != nil {
+		t.Fatal("mode write for zone 6.1.1 reached another zone")
 	}
 }
 
