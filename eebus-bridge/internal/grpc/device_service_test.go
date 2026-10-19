@@ -709,3 +709,44 @@ func TestSubscribeDeviceEventsTrustRemoved(t *testing.T) {
 		t.Errorf("Ski = %q, want %q", evt.Ski, want)
 	}
 }
+
+func TestListDiscoveredDevicesIncludesAnnouncedDetails(t *testing.T) {
+	bus := eebus.NewEventBus()
+	callbacks := eebus.NewCallbacks(bus, false)
+	callbacks.VisibleRemoteMdnsServicesUpdated(nil, []shipapi.RemoteMdnsService{{
+		Ski:    testValidSKI,
+		Brand:  "Vaillant",
+		Model:  "VR940f",
+		Serial: "21251900203000000933084665N9",
+		Type:   "Generic",
+	}})
+	svc := bridgegrpc.NewDeviceService(callbacks, bus, "local", eebus.NewDeviceRegistry(), &recordingTrustController{})
+
+	discovered, err := svc.ListDiscoveredDevices(context.Background(), &pb.Empty{})
+	if err != nil {
+		t.Fatalf("ListDiscoveredDevices: %v", err)
+	}
+	if len(discovered.Devices) != 1 {
+		t.Fatalf("devices = %d, want 1", len(discovered.Devices))
+	}
+	got := discovered.Devices[0]
+	if got.Brand != "Vaillant" || got.Model != "VR940f" || got.Serial != "21251900203000000933084665N9" || got.DeviceType != "Generic" {
+		t.Fatalf("discovered device = %+v, want the announced mDNS details", got)
+	}
+}
+
+func TestServerInfoPublishesDeviceSerial(t *testing.T) {
+	bus := eebus.NewEventBus()
+	svc := bridgegrpc.NewDeviceService(
+		eebus.NewCallbacks(bus, false), bus, "local", eebus.NewDeviceRegistry(), &recordingTrustController{},
+		bridgegrpc.WithDeviceSerial("a1b2c3d4e5f60718"),
+	)
+
+	info, err := svc.GetServerInfo(context.Background(), &pb.Empty{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.DeviceSerial != "a1b2c3d4e5f60718" {
+		t.Fatalf("device_serial = %q, want a1b2c3d4e5f60718", info.DeviceSerial)
+	}
+}

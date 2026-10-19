@@ -420,6 +420,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 							}),
 							bridgegrpc.WithOperationalDiagnostics(app.recoverySupervisor, providerDiagnostics),
 							bridgegrpc.WithStructureDumps(eebus.NewStructureDumper(bridgeSvc.LocalDevice, structureDumpReadWait)),
+							bridgegrpc.WithDeviceSerial(cfg.EEBUS.Serial),
 						),
 					)
 				},

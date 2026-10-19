@@ -84,6 +84,10 @@ message ServerInfo {
   string bridge_build_version = 3;
   repeated FeatureId features = 4;
   string local_ski = 5;
+  // EEBUS serial number the bridge announces (also public via mDNS). Lets a
+  // client that shares the bridge's configuration verify it reached its own
+  // bridge instance rather than another one on the same host.
+  string device_serial = 6;
 }
 
 enum FeatureId {

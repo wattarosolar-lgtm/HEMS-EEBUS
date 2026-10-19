@@ -99,6 +99,13 @@ func WithOperationalDiagnostics(recovery RecoveryDiagnosticsSource, providers Pr
 	}
 }
 
+// WithDeviceSerial publishes the bridge's EEBUS serial in ServerInfo.
+func WithDeviceSerial(serial string) DeviceServiceOption {
+	return func(service *DeviceService) {
+		service.serverInfo.DeviceSerial = serial
+	}
+}
+
 func WithStructureDumps(dumps StructureDumpSource) DeviceServiceOption {
 	return func(service *DeviceService) {
 		service.dumps = dumps
@@ -156,6 +163,7 @@ func cloneServerInfo(info *pb.ServerInfo) *pb.ServerInfo {
 		BridgeBuildVersion: info.BridgeBuildVersion,
 		Features:           append([]pb.FeatureId(nil), info.Features...),
 		LocalSki:           info.LocalSki,
+		DeviceSerial:       info.DeviceSerial,
 	}
 }
 
@@ -385,7 +393,11 @@ func (s *DeviceService) ListDiscoveredDevices(_ context.Context, _ *pb.Empty) (*
 	devices := make([]*pb.DiscoveredDevice, 0, len(svcs))
 	for _, svc := range svcs {
 		devices = append(devices, &pb.DiscoveredDevice{
-			Ski: svc.Ski,
+			Ski:        svc.Ski,
+			Brand:      svc.Brand,
+			Model:      svc.Model,
+			Serial:     svc.Serial,
+			DeviceType: svc.Type,
 		})
 	}
 	return &pb.ListDevicesResponse{Devices: devices}, nil

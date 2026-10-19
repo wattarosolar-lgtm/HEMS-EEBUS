@@ -928,8 +928,12 @@ type ServerInfo struct {
 	BridgeBuildVersion string                 `protobuf:"bytes,3,opt,name=bridge_build_version,json=bridgeBuildVersion,proto3" json:"bridge_build_version,omitempty"`
 	Features           []FeatureId            `protobuf:"varint,4,rep,packed,name=features,proto3,enum=eebus.v1.FeatureId" json:"features,omitempty"`
 	LocalSki           string                 `protobuf:"bytes,5,opt,name=local_ski,json=localSki,proto3" json:"local_ski,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// EEBUS serial number the bridge announces (also public via mDNS). Lets a
+	// client that shares the bridge's configuration verify it reached its own
+	// bridge instance rather than another one on the same host.
+	DeviceSerial  string `protobuf:"bytes,6,opt,name=device_serial,json=deviceSerial,proto3" json:"device_serial,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ServerInfo) Reset() {
@@ -993,6 +997,13 @@ func (x *ServerInfo) GetFeatures() []FeatureId {
 func (x *ServerInfo) GetLocalSki() string {
 	if x != nil {
 		return x.LocalSki
+	}
+	return ""
+}
+
+func (x *ServerInfo) GetDeviceSerial() string {
+	if x != nil {
+		return x.DeviceSerial
 	}
 	return ""
 }
@@ -2571,14 +2582,15 @@ const file_eebus_v1_device_service_proto_rawDesc = "" +
 	"\fcapabilities\x18\x02 \x03(\v2\x1a.eebus.v1.DeviceCapabilityR\fcapabilities\"F\n" +
 	"\rServiceStatus\x12\x18\n" +
 	"\arunning\x18\x01 \x01(\bR\arunning\x12\x1b\n" +
-	"\tlocal_ski\x18\x02 \x01(\tR\blocalSki\"\xc6\x01\n" +
+	"\tlocal_ski\x18\x02 \x01(\tR\blocalSki\"\xeb\x01\n" +
 	"\n" +
 	"ServerInfo\x12\x1b\n" +
 	"\tapi_major\x18\x01 \x01(\rR\bapiMajor\x12\x1b\n" +
 	"\tapi_minor\x18\x02 \x01(\rR\bapiMinor\x120\n" +
 	"\x14bridge_build_version\x18\x03 \x01(\tR\x12bridgeBuildVersion\x12/\n" +
 	"\bfeatures\x18\x04 \x03(\x0e2\x13.eebus.v1.FeatureIdR\bfeatures\x12\x1b\n" +
-	"\tlocal_ski\x18\x05 \x01(\tR\blocalSki\"\xea\x01\n" +
+	"\tlocal_ski\x18\x05 \x01(\tR\blocalSki\x12#\n" +
+	"\rdevice_serial\x18\x06 \x01(\tR\fdeviceSerial\"\xea\x01\n" +
 	"\fDeviceStatus\x12\x1c\n" +
 	"\tconnected\x18\x01 \x01(\bR\tconnected\x12C\n" +
 	"\x0flast_transition\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastTransition\x12<\n" +

@@ -262,18 +262,20 @@ class ServiceStatus(_message.Message):
     def __init__(self, running: _Optional[bool] = ..., local_ski: _Optional[str] = ...) -> None: ...
 
 class ServerInfo(_message.Message):
-    __slots__ = ("api_major", "api_minor", "bridge_build_version", "features", "local_ski")
+    __slots__ = ("api_major", "api_minor", "bridge_build_version", "features", "local_ski", "device_serial")
     API_MAJOR_FIELD_NUMBER: _ClassVar[int]
     API_MINOR_FIELD_NUMBER: _ClassVar[int]
     BRIDGE_BUILD_VERSION_FIELD_NUMBER: _ClassVar[int]
     FEATURES_FIELD_NUMBER: _ClassVar[int]
     LOCAL_SKI_FIELD_NUMBER: _ClassVar[int]
+    DEVICE_SERIAL_FIELD_NUMBER: _ClassVar[int]
     api_major: int
     api_minor: int
     bridge_build_version: str
     features: _containers.RepeatedScalarFieldContainer[FeatureId]
     local_ski: str
-    def __init__(self, api_major: _Optional[int] = ..., api_minor: _Optional[int] = ..., bridge_build_version: _Optional[str] = ..., features: _Optional[_Iterable[_Union[FeatureId, str]]] = ..., local_ski: _Optional[str] = ...) -> None: ...
+    device_serial: str
+    def __init__(self, api_major: _Optional[int] = ..., api_minor: _Optional[int] = ..., bridge_build_version: _Optional[str] = ..., features: _Optional[_Iterable[_Union[FeatureId, str]]] = ..., local_ski: _Optional[str] = ..., device_serial: _Optional[str] = ...) -> None: ...
 
 class DeviceStatus(_message.Message):
     __slots__ = ("connected", "last_transition", "readiness", "recovery")
