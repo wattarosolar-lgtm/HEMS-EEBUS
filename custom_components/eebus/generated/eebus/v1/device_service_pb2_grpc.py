@@ -95,6 +95,11 @@ class DeviceServiceStub:
                 request_serializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
                 response_deserializer=eebus_dot_v1_dot_device__service__pb2.DeviceStateEvent.FromString,
                 _registered_method=True)
+        self.GetDeviceStructureDump = channel.unary_unary(
+                '/eebus.v1.DeviceService/GetDeviceStructureDump',
+                request_serializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
+                response_deserializer=eebus_dot_v1_dot_device__service__pb2.DeviceStructureDump.FromString,
+                _registered_method=True)
 
 
 class DeviceServiceServicer:
@@ -172,6 +177,14 @@ class DeviceServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetDeviceStructureDump(self, request, context):
+        """Read-only diagnostic dump of the connected device's SPINE structure. Sends
+        read requests only; never writes and never changes the local device.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_DeviceServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -234,6 +247,11 @@ def add_DeviceServiceServicer_to_server(servicer, server):
                     servicer.SubscribeDeviceState,
                     request_deserializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.FromString,
                     response_serializer=eebus_dot_v1_dot_device__service__pb2.DeviceStateEvent.SerializeToString,
+            ),
+            'GetDeviceStructureDump': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDeviceStructureDump,
+                    request_deserializer=eebus_dot_v1_dot_common__pb2.DeviceRequest.FromString,
+                    response_serializer=eebus_dot_v1_dot_device__service__pb2.DeviceStructureDump.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -560,6 +578,33 @@ class DeviceService:
             '/eebus.v1.DeviceService/SubscribeDeviceState',
             eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
             eebus_dot_v1_dot_device__service__pb2.DeviceStateEvent.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDeviceStructureDump(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/eebus.v1.DeviceService/GetDeviceStructureDump',
+            eebus_dot_v1_dot_common__pb2.DeviceRequest.SerializeToString,
+            eebus_dot_v1_dot_device__service__pb2.DeviceStructureDump.FromString,
             options,
             channel_credentials,
             insecure,

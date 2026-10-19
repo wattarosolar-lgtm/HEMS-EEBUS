@@ -53,6 +53,7 @@ class FeatureId(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     FEATURE_PROVIDER_SAMPLE_INVALIDATION: _ClassVar[FeatureId]
     FEATURE_TYPED_MEASUREMENTS: _ClassVar[FeatureId]
     FEATURE_OPERATIONAL_DIAGNOSTICS: _ClassVar[FeatureId]
+    FEATURE_DEVICE_STRUCTURE_DUMP: _ClassVar[FeatureId]
 
 class DeviceReadinessState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -165,6 +166,7 @@ FEATURE_DEVICE_SNAPSHOT: FeatureId
 FEATURE_PROVIDER_SAMPLE_INVALIDATION: FeatureId
 FEATURE_TYPED_MEASUREMENTS: FeatureId
 FEATURE_OPERATIONAL_DIAGNOSTICS: FeatureId
+FEATURE_DEVICE_STRUCTURE_DUMP: FeatureId
 DEVICE_READINESS_UNKNOWN: DeviceReadinessState
 DEVICE_READINESS_UNTRUSTED: DeviceReadinessState
 DEVICE_READINESS_DISCONNECTED: DeviceReadinessState
@@ -354,6 +356,16 @@ class DeviceOperationalDiagnostics(_message.Message):
     features: _containers.RepeatedScalarFieldContainer[FeatureId]
     connection_age_seconds: int
     def __init__(self, redacted_ski: _Optional[str] = ..., readiness: _Optional[_Union[DeviceReadinessState, str]] = ..., recovery: _Optional[_Union[RecoveryDiagnostics, _Mapping]] = ..., events: _Optional[_Union[EventTransportDiagnostics, _Mapping]] = ..., monitoring_last_success_age_seconds: _Optional[int] = ..., snapshot_reads: _Optional[_Union[SnapshotReadDiagnostics, _Mapping]] = ..., providers: _Optional[_Iterable[_Union[ProviderSampleDiagnostics, _Mapping]]] = ..., features: _Optional[_Iterable[_Union[FeatureId, str]]] = ..., connection_age_seconds: _Optional[int] = ...) -> None: ...
+
+class DeviceStructureDump(_message.Message):
+    __slots__ = ("redacted_ski", "captured_at", "json")
+    REDACTED_SKI_FIELD_NUMBER: _ClassVar[int]
+    CAPTURED_AT_FIELD_NUMBER: _ClassVar[int]
+    JSON_FIELD_NUMBER: _ClassVar[int]
+    redacted_ski: str
+    captured_at: _timestamp_pb2.Timestamp
+    json: str
+    def __init__(self, redacted_ski: _Optional[str] = ..., captured_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., json: _Optional[str] = ...) -> None: ...
 
 class DiscoveredDevice(_message.Message):
     __slots__ = ("ski", "brand", "model", "serial", "device_type", "host")

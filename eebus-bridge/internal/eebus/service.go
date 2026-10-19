@@ -101,6 +101,11 @@ func (b *BridgeService) Service() api.ServiceInterface {
 	return b.service
 }
 
+// LocalDevice returns the local SPINE device, or nil before Setup.
+func (b *BridgeService) LocalDevice() spineapi.DeviceLocalInterface {
+	return b.service.LocalDevice()
+}
+
 // LocalEntity returns the local CEM entity used for registering use cases.
 func (b *BridgeService) LocalEntity() spineapi.EntityLocalInterface {
 	return b.service.LocalDevice().EntityForType(model.EntityTypeTypeCEM)

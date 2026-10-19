@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"log"
 	"runtime/debug"
 	"sort"
 	"time"
@@ -30,9 +33,15 @@ type DeviceService struct {
 	snapshot   *DeviceSnapshotAssembler
 	recovery   RecoveryDiagnosticsSource
 	providers  ProviderDiagnosticsSource
+	dumps      StructureDumpSource
 }
 
 type DeviceServiceOption func(*DeviceService)
+
+// StructureDumpSource builds the read-only SPINE structure dump of a device.
+type StructureDumpSource interface {
+	Dump(ctx context.Context, ski string) (*eebus.DeviceStructure, error)
+}
 
 type RecoveryDiagnosticsSource interface {
 	Snapshot(string, time.Time) eebus.RecoverySnapshot
@@ -90,6 +99,12 @@ func WithOperationalDiagnostics(recovery RecoveryDiagnosticsSource, providers Pr
 	}
 }
 
+func WithStructureDumps(dumps StructureDumpSource) DeviceServiceOption {
+	return func(service *DeviceService) {
+		service.dumps = dumps
+	}
+}
+
 const (
 	APIMajor uint32 = 1
 	APIMinor uint32 = 0
@@ -107,6 +122,7 @@ var implementedFeatures = []pb.FeatureId{
 	pb.FeatureId_FEATURE_DEVICE_SNAPSHOT,
 	pb.FeatureId_FEATURE_TYPED_MEASUREMENTS,
 	pb.FeatureId_FEATURE_OPERATIONAL_DIAGNOSTICS,
+	pb.FeatureId_FEATURE_DEVICE_STRUCTURE_DUMP,
 }
 
 func WithServerInfo(info *pb.ServerInfo) DeviceServiceOption {
@@ -249,6 +265,42 @@ func (s *DeviceService) GetDeviceDiagnostics(_ context.Context, req *pb.DeviceRe
 		result.Providers = s.providers.ProviderDiagnostics(now)
 	}
 	return result, nil
+}
+
+// GetDeviceStructureDump returns the read-only SPINE structure dump of a
+// connected device as JSON.
+func (s *DeviceService) GetDeviceStructureDump(ctx context.Context, req *pb.DeviceRequest) (*pb.DeviceStructureDump, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+	ski, err := requireExplicitSKI(req.Ski)
+	if err != nil {
+		return nil, err
+	}
+	if s.dumps == nil {
+		return nil, status.Error(codes.Unimplemented, "structure dump is not available")
+	}
+	if s.registry == nil || !s.registry.KnownDevice(ski) {
+		return nil, status.Error(codes.NotFound, "device not found for specified ski")
+	}
+	structure, err := s.dumps.Dump(ctx, ski)
+	if errors.Is(err, eebus.ErrRemoteDeviceNotConnected) {
+		return nil, status.Error(codes.Unavailable, "device not connected")
+	}
+	if err != nil {
+		log.Printf("structure dump for %s failed: %s", eebus.ShortSKI(ski), redactSensitiveDetail(err.Error()))
+		return nil, status.Error(codes.Internal, "structure dump failed")
+	}
+	payload, err := json.MarshalIndent(structure, "", "  ")
+	if err != nil {
+		log.Printf("encoding structure dump for %s failed: %s", eebus.ShortSKI(ski), err)
+		return nil, status.Error(codes.Internal, "encoding structure dump failed")
+	}
+	return &pb.DeviceStructureDump{
+		RedactedSki: eebus.ShortSKI(ski),
+		CapturedAt:  timestamppb.New(structure.CapturedAt),
+		Json:        string(payload),
+	}, nil
 }
 
 func readinessState(state eebus.RecoveryState) pb.DeviceReadinessState {

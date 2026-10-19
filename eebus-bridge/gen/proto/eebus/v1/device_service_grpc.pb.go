@@ -19,18 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DeviceService_GetStatus_FullMethodName             = "/eebus.v1.DeviceService/GetStatus"
-	DeviceService_GetServerInfo_FullMethodName         = "/eebus.v1.DeviceService/GetServerInfo"
-	DeviceService_GetDeviceStatus_FullMethodName       = "/eebus.v1.DeviceService/GetDeviceStatus"
-	DeviceService_GetDeviceCapabilities_FullMethodName = "/eebus.v1.DeviceService/GetDeviceCapabilities"
-	DeviceService_GetDeviceSnapshot_FullMethodName     = "/eebus.v1.DeviceService/GetDeviceSnapshot"
-	DeviceService_GetDeviceDiagnostics_FullMethodName  = "/eebus.v1.DeviceService/GetDeviceDiagnostics"
-	DeviceService_ListDiscoveredDevices_FullMethodName = "/eebus.v1.DeviceService/ListDiscoveredDevices"
-	DeviceService_RegisterRemoteSKI_FullMethodName     = "/eebus.v1.DeviceService/RegisterRemoteSKI"
-	DeviceService_UnregisterRemoteSKI_FullMethodName   = "/eebus.v1.DeviceService/UnregisterRemoteSKI"
-	DeviceService_ListPairedDevices_FullMethodName     = "/eebus.v1.DeviceService/ListPairedDevices"
-	DeviceService_SubscribeDeviceEvents_FullMethodName = "/eebus.v1.DeviceService/SubscribeDeviceEvents"
-	DeviceService_SubscribeDeviceState_FullMethodName  = "/eebus.v1.DeviceService/SubscribeDeviceState"
+	DeviceService_GetStatus_FullMethodName              = "/eebus.v1.DeviceService/GetStatus"
+	DeviceService_GetServerInfo_FullMethodName          = "/eebus.v1.DeviceService/GetServerInfo"
+	DeviceService_GetDeviceStatus_FullMethodName        = "/eebus.v1.DeviceService/GetDeviceStatus"
+	DeviceService_GetDeviceCapabilities_FullMethodName  = "/eebus.v1.DeviceService/GetDeviceCapabilities"
+	DeviceService_GetDeviceSnapshot_FullMethodName      = "/eebus.v1.DeviceService/GetDeviceSnapshot"
+	DeviceService_GetDeviceDiagnostics_FullMethodName   = "/eebus.v1.DeviceService/GetDeviceDiagnostics"
+	DeviceService_ListDiscoveredDevices_FullMethodName  = "/eebus.v1.DeviceService/ListDiscoveredDevices"
+	DeviceService_RegisterRemoteSKI_FullMethodName      = "/eebus.v1.DeviceService/RegisterRemoteSKI"
+	DeviceService_UnregisterRemoteSKI_FullMethodName    = "/eebus.v1.DeviceService/UnregisterRemoteSKI"
+	DeviceService_ListPairedDevices_FullMethodName      = "/eebus.v1.DeviceService/ListPairedDevices"
+	DeviceService_SubscribeDeviceEvents_FullMethodName  = "/eebus.v1.DeviceService/SubscribeDeviceEvents"
+	DeviceService_SubscribeDeviceState_FullMethodName   = "/eebus.v1.DeviceService/SubscribeDeviceState"
+	DeviceService_GetDeviceStructureDump_FullMethodName = "/eebus.v1.DeviceService/GetDeviceStructureDump"
 )
 
 // DeviceServiceClient is the client API for DeviceService service.
@@ -49,6 +50,9 @@ type DeviceServiceClient interface {
 	ListPairedDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListPairedDevicesResponse, error)
 	SubscribeDeviceEvents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DeviceEvent], error)
 	SubscribeDeviceState(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DeviceStateEvent], error)
+	// Read-only diagnostic dump of the connected device's SPINE structure. Sends
+	// read requests only; never writes and never changes the local device.
+	GetDeviceStructureDump(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*DeviceStructureDump, error)
 }
 
 type deviceServiceClient struct {
@@ -197,6 +201,16 @@ func (c *deviceServiceClient) SubscribeDeviceState(ctx context.Context, in *Devi
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DeviceService_SubscribeDeviceStateClient = grpc.ServerStreamingClient[DeviceStateEvent]
 
+func (c *deviceServiceClient) GetDeviceStructureDump(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*DeviceStructureDump, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeviceStructureDump)
+	err := c.cc.Invoke(ctx, DeviceService_GetDeviceStructureDump_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DeviceServiceServer is the server API for DeviceService service.
 // All implementations must embed UnimplementedDeviceServiceServer
 // for forward compatibility.
@@ -213,6 +227,9 @@ type DeviceServiceServer interface {
 	ListPairedDevices(context.Context, *Empty) (*ListPairedDevicesResponse, error)
 	SubscribeDeviceEvents(*Empty, grpc.ServerStreamingServer[DeviceEvent]) error
 	SubscribeDeviceState(*DeviceRequest, grpc.ServerStreamingServer[DeviceStateEvent]) error
+	// Read-only diagnostic dump of the connected device's SPINE structure. Sends
+	// read requests only; never writes and never changes the local device.
+	GetDeviceStructureDump(context.Context, *DeviceRequest) (*DeviceStructureDump, error)
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -258,6 +275,9 @@ func (UnimplementedDeviceServiceServer) SubscribeDeviceEvents(*Empty, grpc.Serve
 }
 func (UnimplementedDeviceServiceServer) SubscribeDeviceState(*DeviceRequest, grpc.ServerStreamingServer[DeviceStateEvent]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeDeviceState not implemented")
+}
+func (UnimplementedDeviceServiceServer) GetDeviceStructureDump(context.Context, *DeviceRequest) (*DeviceStructureDump, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDeviceStructureDump not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 func (UnimplementedDeviceServiceServer) testEmbeddedByValue()                       {}
@@ -482,6 +502,24 @@ func _DeviceService_SubscribeDeviceState_Handler(srv interface{}, stream grpc.Se
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DeviceService_SubscribeDeviceStateServer = grpc.ServerStreamingServer[DeviceStateEvent]
 
+func _DeviceService_GetDeviceStructureDump_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).GetDeviceStructureDump(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceService_GetDeviceStructureDump_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).GetDeviceStructureDump(ctx, req.(*DeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DeviceService_ServiceDesc is the grpc.ServiceDesc for DeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -528,6 +566,10 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPairedDevices",
 			Handler:    _DeviceService_ListPairedDevices_Handler,
+		},
+		{
+			MethodName: "GetDeviceStructureDump",
+			Handler:    _DeviceService_GetDeviceStructureDump_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

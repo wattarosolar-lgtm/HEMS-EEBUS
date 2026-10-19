@@ -25,6 +25,9 @@ service DeviceService {
   rpc ListPairedDevices(Empty) returns (ListPairedDevicesResponse);
   rpc SubscribeDeviceEvents(Empty) returns (stream DeviceEvent);
   rpc SubscribeDeviceState(DeviceRequest) returns (stream DeviceStateEvent);
+  // Read-only diagnostic dump of the connected device's SPINE structure. Sends
+  // read requests only; never writes and never changes the local device.
+  rpc GetDeviceStructureDump(DeviceRequest) returns (DeviceStructureDump);
 }
 
 enum CapabilityId {
@@ -91,6 +94,7 @@ enum FeatureId {
   FEATURE_PROVIDER_SAMPLE_INVALIDATION = 4;
   FEATURE_TYPED_MEASUREMENTS = 5;
   FEATURE_OPERATIONAL_DIAGNOSTICS = 6;
+  FEATURE_DEVICE_STRUCTURE_DUMP = 7;
 }
 
 message DeviceStatus {
@@ -156,6 +160,16 @@ message DeviceOperationalDiagnostics {
   repeated ProviderSampleDiagnostics providers = 7;
   repeated FeatureId features = 8;
   optional uint64 connection_age_seconds = 9;
+}
+
+// DeviceStructureDump carries everything the remote device exposes over SPINE:
+// entity tree, features, functions with permitted operations and their data,
+// and advertised use cases. The payload is JSON because its shape follows the
+// SPINE model of the device, not a stable API contract.
+message DeviceStructureDump {
+  string redacted_ski = 1;
+  google.protobuf.Timestamp captured_at = 2;
+  string json = 3;
 }
 
 message DiscoveredDevice {

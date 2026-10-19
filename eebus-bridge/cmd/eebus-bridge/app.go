@@ -37,6 +37,10 @@ const watchdogInterval = 30 * time.Second
 const monitoringRecoveryMaxAttempts = 3
 const applicationShutdownTimeout = 5 * time.Second
 
+// structureDumpReadWait bounds how long a diagnostic structure dump waits for
+// the answers to its read requests before reporting the rest as unanswered.
+const structureDumpReadWait = 10 * time.Second
+
 type bridgeLifecycle interface {
 	Setup() error
 	Start() error
@@ -415,6 +419,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 								OHPCF:      ohpcfService,
 							}),
 							bridgegrpc.WithOperationalDiagnostics(app.recoverySupervisor, providerDiagnostics),
+							bridgegrpc.WithStructureDumps(eebus.NewStructureDumper(bridgeSvc.LocalDevice, structureDumpReadWait)),
 						),
 					)
 				},
